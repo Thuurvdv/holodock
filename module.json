@@ -1,0 +1,37 @@
+{
+  "id": "holodock",
+  "title": "HoloDock",
+  "description": "A system-agnostic ship loadout overview for HoloSuite.",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "Mage Tower Studios",
+      "email": "Magetowerfoundry@gmail.com"
+    }
+  ],
+  "compatibility": {
+    "minimum": "12",
+    "verified": "13"
+  },
+  "socket": false,
+  "esmodules": [
+    "dist/main.js"
+  ],
+  "styles": [
+    "styles/holosuite-tokens.css",
+    "styles/holodock.css"
+  ],
+  "url": "https://github.com/Thuurvdv/MageTowerFoundryModules/tree/main/holodock",
+  "manifest": "",
+  "download": "",
+  "license": "GPL-3.0-or-later",
+  "readme": "README.md",
+  "relationships": {
+    "requires": [
+      {
+        "id": "holosuite-core",
+        "type": "module"
+      }
+    ]
+  }
+}

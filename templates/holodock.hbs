@@ -1,0 +1,124 @@
+<section class="hd-shell {{#unless canEdit}}hd-readonly{{/unless}}">
+  <header class="hd-header">
+    <div>
+      <p class="hd-kicker">HoloDock</p>
+      <h2>Ship Loadout</h2>
+    </div>
+    <div class="hd-profile-picker">
+      <label>
+        <span>Ship Profile</span>
+        <select data-hd-profile-select {{#unless hasProfiles}}disabled{{/unless}}>
+          {{#each profiles as |profile|}}
+            <option value="{{profile.id}}" {{#if profile.isSelected}}selected{{/if}}>{{profile.name}}</option>
+          {{/each}}
+        </select>
+      </label>
+      {{#if canEdit}}
+        <button type="button" data-hd-action="create-profile"><i class="fa-solid fa-plus"></i> New</button>
+        {{#if selectedProfile}}
+          <button type="button" data-hd-action="delete-profile"><i class="fa-solid fa-trash"></i> Delete</button>
+        {{/if}}
+      {{/if}}
+    </div>
+  </header>
+
+  {{#if selectedProfile}}
+    <div class="hd-layout">
+      <aside class="hd-profile-panel">
+        <form data-hd-profile-form>
+          <label>
+            <span>Ship Name</span>
+            <input type="text" name="name" value="{{selectedProfile.name}}" {{#unless canEdit}}disabled{{/unless}}>
+          </label>
+          <label>
+            <span>Class / Type</span>
+            <input type="text" name="shipClass" value="{{selectedProfile.shipClass}}" placeholder="Optional" {{#unless canEdit}}disabled{{/unless}}>
+          </label>
+          <label>
+            <span>Image Path</span>
+            <span class="hd-image-field">
+              <input type="text" name="image" value="{{selectedProfile.image}}" placeholder="modules/holodock/assets/space-station.svg" {{#unless canEdit}}disabled{{/unless}}>
+              {{#if canEdit}}
+                <button type="button" data-hd-action="browse-image" title="Choose ship image"><i class="fa-solid fa-folder-open"></i></button>
+              {{/if}}
+            </span>
+          </label>
+          {{#if canEdit}}
+            <button type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Ship</button>
+          {{/if}}
+        </form>
+
+        <section class="hd-slot-tools">
+          <div>
+            <p class="hd-kicker">Equipment Slots</p>
+            <strong>{{selectedProfile.slots.length}} slots</strong>
+          </div>
+          {{#if canEdit}}
+            <button type="button" data-hd-action="create-slot"><i class="fa-solid fa-plus"></i> Add Slot</button>
+          {{/if}}
+        </section>
+      </aside>
+
+      <main class="hd-stage">
+        <section class="hd-ship-card">
+          <div class="hd-ship-image-wrap">
+            <img src="{{selectedProfile.image}}" alt="{{selectedProfile.name}}" onerror="this.src='modules/holodock/assets/space-station.svg'">
+          </div>
+          <div>
+            <h3>{{selectedProfile.name}}</h3>
+            <p>{{hdFallback selectedProfile.shipClass "Unclassified vessel"}}</p>
+          </div>
+        </section>
+
+        <section class="hd-slot-grid" aria-label="Ship equipment slots">
+          {{#each selectedProfile.slots as |slot|}}
+            <article class="hd-slot {{#if slot.item}}is-filled{{else}}is-empty{{/if}}" data-hd-slot-id="{{slot.id}}">
+              <header>
+                <div>
+                  <span class="hd-slot-category">{{slot.category}}</span>
+                  <h4>{{slot.label}}</h4>
+                </div>
+                {{#if ../canEdit}}
+                  <div class="hd-slot-actions">
+                    <button type="button" data-hd-edit-slot="{{slot.id}}" title="Edit slot"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type="button" data-hd-delete-slot="{{slot.id}}" title="Delete slot"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                {{/if}}
+              </header>
+
+              {{#if slot.item}}
+                <button type="button" class="hd-equipped-item" data-hd-open-item="{{slot.id}}">
+                  <img src="{{slot.item.img}}" alt="">
+                  <span>
+                    <strong>{{slot.item.name}}</strong>
+                    <small>{{slot.item.status}}</small>
+                  </span>
+                </button>
+                {{#if ../canEdit}}
+                  <button type="button" class="hd-remove-item" data-hd-remove-item="{{slot.id}}">
+                    <i class="fa-solid fa-xmark"></i>
+                    Remove
+                  </button>
+                {{/if}}
+              {{else}}
+                <div class="hd-drop-target">
+                  <i class="fa-solid fa-download"></i>
+                  <span>{{#if ../canEdit}}Drop Item Here{{else}}Empty Slot{{/if}}</span>
+                </div>
+              {{/if}}
+            </article>
+          {{/each}}
+        </section>
+      </main>
+    </div>
+  {{else}}
+    <div class="hd-empty">
+      <i class="fa-solid fa-shuttle-space"></i>
+      {{#if canEdit}}
+        <p>Create a ship profile to start assigning equipment.</p>
+      {{else}}
+        <p>No ship loadouts are available yet.</p>
+      {{/if}}
+    </div>
+  {{/if}}
+</section>
