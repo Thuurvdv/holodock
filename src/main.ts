@@ -1,13 +1,15 @@
 import type { HoloSuiteAppRegistration } from "../../shared/src/index";
-
-const MODULE_ID = "holodock";
-const MODULE_TITLE = "HoloDock";
-const SETTING_PROFILES = "profiles";
-const SETTING_CATEGORIES = "slotCategories";
-const TEMPLATE_PATH = `modules/${MODULE_ID}/templates/holodock.hbs`;
-const DEFAULT_IMAGE = "modules/holodock/assets/space-station.svg";
-const LEGACY_DEFAULT_IMAGE = "icons/svg/space-station.svg";
-const DEFAULT_CATEGORIES = ["Weapons", "Defense", "Utility", "Engines", "Cargo", "Special"];
+import {
+  DEFAULT_CATEGORIES,
+  DEFAULT_IMAGE,
+  LEGACY_DEFAULT_IMAGE,
+  MODULE_ID,
+  MODULE_TITLE,
+  SETTING_CATEGORIES,
+  SETTING_PROFILES,
+  TEMPLATE_PATH
+} from "./constants";
+import { clone, createId, escapeHtml, requireGM } from "./utils";
 
 type ShipSlot = {
   id: string;
@@ -28,30 +30,6 @@ const LegacyApplication = (globalThis as any).Application ?? foundry?.appv1?.api
 
 let holodockApp: HoloDockApp | null = null;
 let selectedProfileId = "";
-
-function clone<T>(value: T): T {
-  if (foundry?.utils?.deepClone) return foundry.utils.deepClone(value);
-  if (foundry?.utils?.duplicate) return foundry.utils.duplicate(value);
-  return JSON.parse(JSON.stringify(value ?? {}));
-}
-
-function createId(prefix = "hd"): string {
-  const id = foundry?.utils?.randomID?.() ?? crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return `${prefix}-${id}`;
-}
-
-function escapeHtml(value: unknown): string {
-  if (foundry?.utils?.escapeHTML) return foundry.utils.escapeHTML(String(value ?? ""));
-  const div = document.createElement("div");
-  div.textContent = String(value ?? "");
-  return div.innerHTML;
-}
-
-function requireGM(action = "edit HoloDock"): boolean {
-  if (game.user?.isGM) return true;
-  ui.notifications?.warn?.(`Only a GM can ${action}.`);
-  return false;
-}
 
 function normalizeSlot(data: Partial<ShipSlot> = {}): ShipSlot {
   return {
