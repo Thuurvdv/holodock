@@ -3,6 +3,6 @@ export const MODULE_TITLE = "HoloDock";
 export const SETTING_PROFILES = "profiles";
 export const SETTING_CATEGORIES = "slotCategories";
 export const TEMPLATE_PATH = `modules/${MODULE_ID}/templates/holodock.hbs`;
-export const DEFAULT_IMAGE = "modules/holodock/assets/space-station.svg";
+export const DEFAULT_IMAGE = "modules/holodock/assets/SpaceshipDefault.webp";
 export const LEGACY_DEFAULT_IMAGE = "icons/svg/space-station.svg";
 export const DEFAULT_CATEGORIES = ["Weapons", "Defense", "Utility", "Engines", "Cargo", "Special"];

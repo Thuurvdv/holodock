@@ -1,4 +1,5 @@
 import type { HoloSuiteAppRegistration } from "../../shared/src/index";
+import { getApplicationBase } from "../../shared/src/application-base";
 import {
   DEFAULT_CATEGORIES,
   DEFAULT_IMAGE,
@@ -15,7 +16,17 @@ type ShipSlot = {
   id: string;
   label: string;
   category: string;
+  description: string;
+  anchorX?: number;
+  anchorY?: number;
   itemUuid?: string;
+};
+
+type ShipStat = {
+  id: string;
+  label: string;
+  value: string;
+  note: string;
 };
 
 type ShipProfile = {
@@ -23,20 +34,35 @@ type ShipProfile = {
   name: string;
   shipClass: string;
   image: string;
+  stats: ShipStat[];
   slots: ShipSlot[];
 };
 
-const LegacyApplication = (globalThis as any).Application ?? foundry?.appv1?.api?.Application;
+const LegacyApplication = getApplicationBase();
 
 let holodockApp: HoloDockApp | null = null;
 let selectedProfileId = "";
 
 function normalizeSlot(data: Partial<ShipSlot> = {}): ShipSlot {
+  const anchorX = Number(data.anchorX);
+  const anchorY = Number(data.anchorY);
   return {
     id: String(data.id || createId("slot")),
     label: String(data.label || "Equipment Slot").trim() || "Equipment Slot",
     category: String(data.category || DEFAULT_CATEGORIES[0]).trim() || DEFAULT_CATEGORIES[0],
+    description: String(data.description || "").trim(),
+    anchorX: Number.isFinite(anchorX) ? Math.min(100, Math.max(0, anchorX)) : undefined,
+    anchorY: Number.isFinite(anchorY) ? Math.min(100, Math.max(0, anchorY)) : undefined,
     itemUuid: String(data.itemUuid || "").trim() || undefined
+  };
+}
+
+function normalizeStat(data: Partial<ShipStat> = {}): ShipStat {
+  return {
+    id: String(data.id || createId("stat")),
+    label: String(data.label || "Statistic").trim() || "Statistic",
+    value: String(data.value || "").trim(),
+    note: String(data.note || "").trim()
   };
 }
 
@@ -47,6 +73,7 @@ function normalizeProfile(data: Partial<ShipProfile> = {}): ShipProfile {
     name: String(data.name || "Party Ship").trim() || "Party Ship",
     shipClass: String(data.shipClass || "").trim(),
     image: image === LEGACY_DEFAULT_IMAGE ? DEFAULT_IMAGE : image,
+    stats: Array.isArray(data.stats) ? data.stats.map(normalizeStat) : [],
     slots: Array.isArray(data.slots) ? data.slots.map(normalizeSlot) : []
   };
 }
@@ -107,6 +134,11 @@ async function createProfile(): Promise<ShipProfile | null> {
     name: "New Ship",
     shipClass: "",
     image: DEFAULT_IMAGE,
+    stats: [
+      normalizeStat({ id: createId("stat"), label: "Speed", value: "6", note: "" }),
+      normalizeStat({ id: createId("stat"), label: "Fuel", value: "100%", note: "" }),
+      normalizeStat({ id: createId("stat"), label: "Defense", value: "10", note: "" })
+    ],
     slots: DEFAULT_CATEGORIES.slice(0, 4).map((category) => normalizeSlot({
       id: createId("slot"),
       label: category,
@@ -130,6 +162,7 @@ async function updateProfileMetadata(profileId: string, metadata: Partial<ShipPr
     name: metadata.name,
     shipClass: metadata.shipClass,
     image: metadata.image,
+    stats: existing.stats,
     slots: existing.slots
   });
   profiles[profileId] = updated;
@@ -150,6 +183,31 @@ async function deleteProfile(profileId = selectedProfileId): Promise<boolean> {
   const profiles = clone(getProfileStore());
   delete profiles[profileId];
   selectedProfileId = Object.keys(profiles)[0] ?? "";
+  await saveProfileStore(profiles);
+  return true;
+}
+
+async function upsertStat(profileId: string, statData: Partial<ShipStat>): Promise<ShipStat | null> {
+  if (!requireGM("edit ship statistics")) return null;
+  const profiles = clone(getProfileStore());
+  const profile = profiles[profileId];
+  if (!profile) return null;
+  const stat = normalizeStat(statData);
+  const index = profile.stats.findIndex((candidate) => candidate.id === stat.id);
+  if (index >= 0) profile.stats[index] = { ...profile.stats[index], ...stat };
+  else profile.stats.push(stat);
+  profiles[profileId] = normalizeProfile(profile);
+  await saveProfileStore(profiles);
+  return stat;
+}
+
+async function deleteStat(profileId: string, statId: string): Promise<boolean> {
+  if (!requireGM("delete ship statistics")) return false;
+  const profiles = clone(getProfileStore());
+  const profile = profiles[profileId];
+  if (!profile) return false;
+  profile.stats = profile.stats.filter((stat) => stat.id !== statId);
+  profiles[profileId] = normalizeProfile(profile);
   await saveProfileStore(profiles);
   return true;
 }
@@ -176,6 +234,28 @@ async function deleteSlot(profileId: string, slotId: string): Promise<boolean> {
   if (!profile) return false;
   profile.slots = profile.slots.filter((slot) => slot.id !== slotId);
   profiles[profileId] = normalizeProfile(profile);
+  await saveProfileStore(profiles);
+  return true;
+}
+
+async function setSlotAnchor(profileId: string, slotId: string, anchorX: number, anchorY: number): Promise<boolean> {
+  if (!requireGM("place equipment links")) return false;
+  const profiles = clone(getProfileStore());
+  const slot = profiles[profileId]?.slots.find((candidate) => candidate.id === slotId);
+  if (!slot) return false;
+  slot.anchorX = Math.min(100, Math.max(0, Number(anchorX)));
+  slot.anchorY = Math.min(100, Math.max(0, Number(anchorY)));
+  await saveProfileStore(profiles);
+  return true;
+}
+
+async function clearSlotAnchor(profileId: string, slotId: string): Promise<boolean> {
+  if (!requireGM("clear equipment links")) return false;
+  const profiles = clone(getProfileStore());
+  const slot = profiles[profileId]?.slots.find((candidate) => candidate.id === slotId);
+  if (!slot) return false;
+  delete slot.anchorX;
+  delete slot.anchorY;
   await saveProfileStore(profiles);
   return true;
 }
@@ -235,12 +315,27 @@ function getDragData(event: DragEvent): any {
   }
 }
 
+function extractItemDescription(item: any): string {
+  const description = item?.system?.description?.value
+    ?? item?.system?.description
+    ?? item?.description
+    ?? "";
+  if (typeof description === "string") return description.trim();
+  if (description?.value) return String(description.value).trim();
+  return "";
+}
+
 async function prepareSlotForRender(slot: ShipSlot): Promise<any> {
-  if (!slot.itemUuid) return { ...slot, item: null };
+  const hasAnchor = Number.isFinite(slot.anchorX) && Number.isFinite(slot.anchorY);
+  const preparedSlot = {
+    ...slot,
+    hasAnchor
+  };
+  if (!slot.itemUuid) return { ...preparedSlot, item: null };
   const item = await resolveItem(slot.itemUuid);
   if (!item) {
     return {
-      ...slot,
+      ...preparedSlot,
       item: {
         name: "Missing Item",
         img: "icons/svg/hazard.svg",
@@ -251,11 +346,12 @@ async function prepareSlotForRender(slot: ShipSlot): Promise<any> {
   }
 
   return {
-    ...slot,
+    ...preparedSlot,
       item: {
         name: item.name ?? "Unnamed Item",
         img: item.img || "icons/svg/item-bag.svg",
         status: item.type ? `Item Type: ${item.type}` : "Foundry Item",
+        description: extractItemDescription(item),
         uuid: item.uuid
       }
   };
@@ -323,6 +419,10 @@ function openSlotDialog(slot: Partial<ShipSlot> = {}): void {
           <input type="text" name="category" value="${escapeHtml(data.category)}" list="hd-slot-categories">
           <datalist id="hd-slot-categories">${categoryOptions}</datalist>
         </label>
+        <label>
+          <span>Description</span>
+          <textarea name="description" rows="4">${escapeHtml(data.description)}</textarea>
+        </label>
       </form>
     `,
     buttons: {
@@ -343,7 +443,53 @@ function openSlotDialog(slot: Partial<ShipSlot> = {}): void {
   }).render(true);
 }
 
+function openStatDialog(stat: Partial<ShipStat> = {}): void {
+  if (!requireGM("edit ship statistics")) return;
+  const profile = getSelectedProfile();
+  if (!profile) return;
+  const data = normalizeStat({ label: "New Statistic", ...stat });
+
+  new Dialog({
+    title: stat.id ? "Edit Ship Statistic" : "Add Ship Statistic",
+    content: `
+      <form class="hd-dialog-form">
+        <input type="hidden" name="id" value="${escapeHtml(data.id)}">
+        <label>
+          <span>Label</span>
+          <input type="text" name="label" value="${escapeHtml(data.label)}">
+        </label>
+        <label>
+          <span>Value</span>
+          <input type="text" name="value" value="${escapeHtml(data.value)}">
+        </label>
+        <label>
+          <span>Note</span>
+          <textarea name="note" rows="3">${escapeHtml(data.note)}</textarea>
+        </label>
+      </form>
+    `,
+    buttons: {
+      save: {
+        icon: '<i class="fa-solid fa-floppy-disk"></i>',
+        label: "Save",
+        callback: (html) => upsertStat(profile.id, getFormValues(html))
+      },
+      cancel: {
+        icon: '<i class="fa-solid fa-xmark"></i>',
+        label: "Cancel"
+      }
+    },
+    default: "save"
+  }, {
+    classes: ["holodock-window", "hd-dialog"],
+    width: 420
+  }).render(true);
+}
+
 class HoloDockApp extends LegacyApplication {
+  private linkingSlotId = "";
+  private linkResizeObserver?: ResizeObserver;
+
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: "holodock",
@@ -353,7 +499,7 @@ class HoloDockApp extends LegacyApplication {
       popOut: true,
       resizable: true,
       width: 920,
-      height: "auto"
+      height: 760
     });
   }
 
@@ -386,7 +532,24 @@ class HoloDockApp extends LegacyApplication {
         if (action === "create-profile") await createProfile();
         if (action === "delete-profile") await deleteProfile(profile?.id);
         if (action === "create-slot") openSlotDialog();
+        if (action === "create-stat") openStatDialog();
         if (action === "browse-image") this.browseShipImage();
+      });
+    });
+
+    element.querySelectorAll("[data-hd-edit-stat]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        const profile = getSelectedProfile();
+        const stat = profile?.stats.find((candidate) => candidate.id === (event.currentTarget as HTMLElement).dataset.hdEditStat);
+        if (stat) openStatDialog(stat);
+      });
+    });
+
+    element.querySelectorAll("[data-hd-delete-stat]").forEach((button) => {
+      button.addEventListener("click", async (event) => {
+        const profile = getSelectedProfile();
+        const statId = (event.currentTarget as HTMLElement).dataset.hdDeleteStat ?? "";
+        if (profile) await deleteStat(profile.id, statId);
       });
     });
 
@@ -425,6 +588,9 @@ class HoloDockApp extends LegacyApplication {
     });
 
     this.activateSlotDrops(element);
+    this.activateSlotAnchors(element);
+    window.requestAnimationFrame(() => this.syncShipLinks(element));
+    window.setTimeout(() => this.syncShipLinks(element), 100);
   }
 
   activateSlotDrops(element: HTMLElement): void {
@@ -459,6 +625,146 @@ class HoloDockApp extends LegacyApplication {
     });
   }
 
+  activateSlotAnchors(element: HTMLElement): void {
+    const map = element.querySelector<HTMLElement>("[data-hd-ship-map]");
+    if (!map) return;
+    this.linkResizeObserver?.disconnect();
+    this.linkResizeObserver = undefined;
+    if (typeof ResizeObserver !== "undefined") {
+      this.linkResizeObserver = new ResizeObserver(() => this.syncShipLinks(element));
+      this.linkResizeObserver.observe(element.querySelector<HTMLElement>(".hd-stage") ?? element);
+    }
+    element.querySelector<HTMLElement>(".hd-slot-rail")?.addEventListener("scroll", () => this.syncShipLinks(element));
+    map.querySelector("img")?.addEventListener("load", () => this.syncShipLinks(element));
+
+    element.querySelectorAll("[data-hd-link-slot]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (!game.user?.isGM) return;
+        this.linkingSlotId = (button as HTMLElement).dataset.hdLinkSlot ?? "";
+        element.classList.toggle("is-linking-slot", Boolean(this.linkingSlotId));
+      });
+    });
+
+    element.querySelectorAll("[data-hd-clear-link]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const profile = getSelectedProfile();
+        const slotId = (button as HTMLElement).dataset.hdClearLink ?? "";
+        if (profile) await clearSlotAnchor(profile.id, slotId);
+      });
+    });
+
+    map.addEventListener("click", async (event) => {
+      if (!game.user?.isGM || !this.linkingSlotId) return;
+      event.preventDefault();
+      const profile = getSelectedProfile();
+      const point = this.getImageAnchorPoint(map, event.clientX, event.clientY);
+      const slotId = this.linkingSlotId;
+      this.linkingSlotId = "";
+      element.classList.remove("is-linking-slot");
+      if (profile) await setSlotAnchor(profile.id, slotId, point.x, point.y);
+    });
+
+    element.querySelectorAll("[data-hd-anchor-slot]").forEach((pin) => {
+      pin.addEventListener("pointerdown", (event) => {
+        if (!game.user?.isGM) return;
+        event.preventDefault();
+        const slotId = (pin as HTMLElement).dataset.hdAnchorSlot ?? "";
+        const move = (moveEvent: PointerEvent) => {
+          const point = this.getImageAnchorPoint(map, moveEvent.clientX, moveEvent.clientY);
+          (pin as HTMLElement).dataset.hdAnchorX = String(point.x);
+          (pin as HTMLElement).dataset.hdAnchorY = String(point.y);
+          this.syncShipLinks(element);
+        };
+        const up = async (upEvent: PointerEvent) => {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", up);
+          const profile = getSelectedProfile();
+          const point = this.getImageAnchorPoint(map, upEvent.clientX, upEvent.clientY);
+          if (profile) await setSlotAnchor(profile.id, slotId, point.x, point.y);
+        };
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up);
+      });
+    });
+  }
+
+  getImageAnchorPoint(map: HTMLElement, clientX: number, clientY: number): { x: number; y: number } {
+    const rect = this.getShipImageRect(map);
+    const x = Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100));
+    const y = Math.min(100, Math.max(0, ((clientY - rect.top) / rect.height) * 100));
+    return { x, y };
+  }
+
+  getShipImageRect(map: HTMLElement): DOMRect {
+    const img = map.querySelector<HTMLImageElement>("img");
+    const rect = img?.getBoundingClientRect();
+    if (rect?.width && rect?.height && img?.naturalWidth && img?.naturalHeight) {
+      const imageRatio = img.naturalWidth / img.naturalHeight;
+      const boxRatio = rect.width / rect.height;
+      if (imageRatio > boxRatio) {
+        const height = rect.width / imageRatio;
+        const top = rect.top + (rect.height - height) / 2;
+        return new DOMRect(rect.left, top, rect.width, height);
+      }
+      const width = rect.height * imageRatio;
+      const left = rect.left + (rect.width - width) / 2;
+      return new DOMRect(left, rect.top, width, rect.height);
+    }
+    if (rect?.width && rect?.height) return rect;
+    return map.getBoundingClientRect();
+  }
+
+  positionSlotPins(element: HTMLElement): void {
+    const map = element.querySelector<HTMLElement>("[data-hd-ship-map]");
+    if (!map) return;
+    const imageRect = this.getShipImageRect(map);
+    const mapRect = map.getBoundingClientRect();
+    element.querySelectorAll<HTMLElement>("[data-hd-anchor-slot]").forEach((pin) => {
+      const anchorX = Number(pin.dataset.hdAnchorX);
+      const anchorY = Number(pin.dataset.hdAnchorY);
+      if (!Number.isFinite(anchorX) || !Number.isFinite(anchorY)) return;
+      const x = imageRect.left - mapRect.left + (imageRect.width * anchorX) / 100;
+      const y = imageRect.top - mapRect.top + (imageRect.height * anchorY) / 100;
+      pin.style.left = `${x}px`;
+      pin.style.top = `${y}px`;
+    });
+  }
+
+  syncShipLinks(element: HTMLElement): void {
+    this.positionSlotPins(element);
+    this.drawSlotLinks(element);
+  }
+
+  drawSlotLinks(element: HTMLElement): void {
+    const svg = element.querySelector<SVGSVGElement>("[data-hd-link-lines]");
+    const map = element.querySelector<HTMLElement>("[data-hd-ship-map]");
+    if (!svg || !map) return;
+    const stageRect = svg.getBoundingClientRect();
+    const width = Math.max(1, Math.round(stageRect.width));
+    const height = Math.max(1, Math.round(stageRect.height));
+    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    svg.setAttribute("width", String(width));
+    svg.setAttribute("height", String(height));
+    svg.innerHTML = "";
+
+    element.querySelectorAll<HTMLElement>("[data-hd-anchor-slot]").forEach((pin) => {
+      const slotId = pin.dataset.hdAnchorSlot ?? "";
+      const card = element.querySelector<HTMLElement>(`[data-hd-slot-card="${slotId}"]`);
+      if (!card) return;
+      const pinRect = pin.getBoundingClientRect();
+      const cardRect = card.getBoundingClientRect();
+      const x1 = pinRect.left + pinRect.width / 2 - stageRect.left;
+      const y1 = pinRect.top + pinRect.height / 2 - stageRect.top;
+      const x2 = cardRect.left - stageRect.left;
+      const y2 = cardRect.top + cardRect.height / 2 - stageRect.top;
+      const control = Math.max(40, Math.abs(x2 - x1) / 2);
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", `M ${x1} ${y1} C ${x1 + control} ${y1}, ${x2 - control} ${y2}, ${x2} ${y2}`);
+      path.setAttribute("class", "hd-link-line");
+      svg.append(path);
+    });
+  }
+
   browseShipImage(): void {
     if (!requireGM("choose ship images")) return;
     const element = getElement(this);
@@ -477,6 +783,8 @@ class HoloDockApp extends LegacyApplication {
   }
 
   async close(options = {}) {
+    this.linkResizeObserver?.disconnect();
+    this.linkResizeObserver = undefined;
     holodockApp = null;
     return super.close(options);
   }
@@ -520,6 +828,10 @@ function registerApi(): void {
     deleteProfile,
     upsertSlot,
     deleteSlot,
+    upsertStat,
+    deleteStat,
+    setSlotAnchor,
+    clearSlotAnchor,
     equipItem,
     unequipItem,
     getCategories
@@ -530,9 +842,16 @@ function registerApi(): void {
   if (module) module.api = api;
 }
 
-function registerWithHoloSuite(): boolean {
+function getHoloSuiteApi(): any {
   const holosuite = game.modules.get("holosuite-core");
-  const api = holosuite?.active ? holosuite.api : null;
+  return (holosuite?.active ? holosuite.api : null)
+    ?? game.holosuite
+    ?? (globalThis as any).HoloSuiteCoreApi
+    ?? null;
+}
+
+function registerWithHoloSuite(): boolean {
+  const api = getHoloSuiteApi();
   if (!api?.registerApp) return false;
 
   const registration: HoloSuiteAppRegistration = {
@@ -548,6 +867,20 @@ function registerWithHoloSuite(): boolean {
   return true;
 }
 
+function registerWithHoloSuiteWhenReady(): void {
+  if (registerWithHoloSuite()) return;
+
+  let attempts = 0;
+  const retry = () => {
+    attempts += 1;
+    if (registerWithHoloSuite() || attempts >= 20) return;
+    window.setTimeout(retry, 250);
+  };
+
+  Hooks.once("holosuite-core.apiReady", () => registerWithHoloSuite());
+  window.setTimeout(retry, 250);
+}
+
 Hooks.once("init", async () => {
   registerSettings();
   Handlebars.registerHelper("hdFallback", (value, fallback) => value || fallback);
@@ -556,6 +889,6 @@ Hooks.once("init", async () => {
 
 Hooks.once("ready", () => {
   registerApi();
-  registerWithHoloSuite();
+  registerWithHoloSuiteWhenReady();
   console.log(`${MODULE_ID} | Ready. API available at game.holodock.`);
 });

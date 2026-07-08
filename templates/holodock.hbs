@@ -37,7 +37,7 @@
           <label>
             <span>Image Path</span>
             <span class="hd-image-field">
-              <input type="text" name="image" value="{{selectedProfile.image}}" placeholder="modules/holodock/assets/space-station.svg" {{#unless canEdit}}disabled{{/unless}}>
+              <input type="text" name="image" value="{{selectedProfile.image}}" placeholder="modules/holodock/assets/SpaceshipDefault.webp" {{#unless canEdit}}disabled{{/unless}}>
               {{#if canEdit}}
                 <button type="button" data-hd-action="browse-image" title="Choose ship image"><i class="fa-solid fa-folder-open"></i></button>
               {{/if}}
@@ -57,22 +57,69 @@
             <button type="button" data-hd-action="create-slot"><i class="fa-solid fa-plus"></i> Add Slot</button>
           {{/if}}
         </section>
+
+        <section class="hd-stat-panel">
+          <div class="hd-section-heading">
+            <div>
+              <p class="hd-kicker">Ship Statistics</p>
+              <strong>{{selectedProfile.stats.length}} entries</strong>
+            </div>
+            {{#if canEdit}}
+              <button type="button" data-hd-action="create-stat" title="Add statistic"><i class="fa-solid fa-plus"></i></button>
+            {{/if}}
+          </div>
+
+          {{#if selectedProfile.stats.length}}
+            <div class="hd-stat-list">
+              {{#each selectedProfile.stats as |stat|}}
+                <article class="hd-stat">
+                  <div>
+                    <span>{{stat.label}}</span>
+                    <strong>{{stat.value}}</strong>
+                    {{#if stat.note}}<small>{{stat.note}}</small>{{/if}}
+                  </div>
+                  {{#if ../canEdit}}
+                    <div class="hd-stat-actions">
+                      <button type="button" data-hd-edit-stat="{{stat.id}}" title="Edit statistic"><i class="fa-solid fa-pen-to-square"></i></button>
+                      <button type="button" data-hd-delete-stat="{{stat.id}}" title="Delete statistic"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                  {{/if}}
+                </article>
+              {{/each}}
+            </div>
+          {{else}}
+            <p class="hd-muted">No statistics configured.</p>
+          {{/if}}
+        </section>
       </aside>
 
       <main class="hd-stage">
-        <section class="hd-ship-card">
-          <div class="hd-ship-image-wrap">
-            <img src="{{selectedProfile.image}}" alt="{{selectedProfile.name}}" onerror="this.src='modules/holodock/assets/space-station.svg'">
-          </div>
-          <div>
-            <h3>{{selectedProfile.name}}</h3>
+        <svg class="hd-link-layer" data-hd-link-lines aria-hidden="true"></svg>
+
+        <section class="hd-ship-focus">
+          <div class="hd-ship-title">
+            <div>
+              <p class="hd-kicker">Active Vessel</p>
+              <h3>{{selectedProfile.name}}</h3>
+            </div>
             <p>{{hdFallback selectedProfile.shipClass "Unclassified vessel"}}</p>
+          </div>
+
+          <div class="hd-ship-image-wrap" data-hd-ship-map>
+            <img src="{{selectedProfile.image}}" alt="{{selectedProfile.name}}" onerror="this.src='modules/holodock/assets/SpaceshipDefault.webp'">
+            {{#each selectedProfile.slots as |slot|}}
+              {{#if slot.hasAnchor}}
+                <button type="button" class="hd-anchor-pin" data-hd-anchor-slot="{{slot.id}}" data-hd-anchor-x="{{slot.anchorX}}" data-hd-anchor-y="{{slot.anchorY}}" title="{{slot.label}}">
+                  <span>{{slot.label}}</span>
+                </button>
+              {{/if}}
+            {{/each}}
           </div>
         </section>
 
-        <section class="hd-slot-grid" aria-label="Ship equipment slots">
+        <section class="hd-slot-rail" aria-label="Ship equipment slots">
           {{#each selectedProfile.slots as |slot|}}
-            <article class="hd-slot {{#if slot.item}}is-filled{{else}}is-empty{{/if}}" data-hd-slot-id="{{slot.id}}">
+            <article class="hd-slot {{#if slot.item}}is-filled{{else}}is-empty{{/if}}" data-hd-slot-id="{{slot.id}}" data-hd-slot-card="{{slot.id}}">
               <header>
                 <div>
                   <span class="hd-slot-category">{{slot.category}}</span>
@@ -80,11 +127,19 @@
                 </div>
                 {{#if ../canEdit}}
                   <div class="hd-slot-actions">
+                    <button type="button" data-hd-link-slot="{{slot.id}}" title="Place link on ship"><i class="fa-solid fa-location-dot"></i></button>
+                    {{#if slot.hasAnchor}}
+                      <button type="button" data-hd-clear-link="{{slot.id}}" title="Clear ship link"><i class="fa-solid fa-link-slash"></i></button>
+                    {{/if}}
                     <button type="button" data-hd-edit-slot="{{slot.id}}" title="Edit slot"><i class="fa-solid fa-pen-to-square"></i></button>
                     <button type="button" data-hd-delete-slot="{{slot.id}}" title="Delete slot"><i class="fa-solid fa-trash"></i></button>
                   </div>
                 {{/if}}
               </header>
+
+              {{#if slot.description}}
+                <p class="hd-slot-description">{{slot.description}}</p>
+              {{/if}}
 
               {{#if slot.item}}
                 <button type="button" class="hd-equipped-item" data-hd-open-item="{{slot.id}}">
@@ -94,6 +149,9 @@
                     <small>{{slot.item.status}}</small>
                   </span>
                 </button>
+                {{#if slot.item.description}}
+                  <div class="hd-item-description">{{{slot.item.description}}}</div>
+                {{/if}}
                 {{#if ../canEdit}}
                   <button type="button" class="hd-remove-item" data-hd-remove-item="{{slot.id}}">
                     <i class="fa-solid fa-xmark"></i>
