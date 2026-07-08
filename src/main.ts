@@ -206,6 +206,14 @@ async function deleteStat(profileId: string, statId: string): Promise<boolean> {
   const profiles = clone(getProfileStore());
   const profile = profiles[profileId];
   if (!profile) return false;
+  const stat = profile.stats.find((candidate) => candidate.id === statId);
+  if (!stat) return false;
+  const confirmed = await Dialog.confirm({
+    title: "Delete Ship Statistic",
+    content: `<p>Delete <strong>${escapeHtml(stat.label)}</strong>?</p>`,
+    defaultYes: false
+  });
+  if (!confirmed) return false;
   profile.stats = profile.stats.filter((stat) => stat.id !== statId);
   profiles[profileId] = normalizeProfile(profile);
   await saveProfileStore(profiles);
@@ -232,6 +240,14 @@ async function deleteSlot(profileId: string, slotId: string): Promise<boolean> {
   const profiles = clone(getProfileStore());
   const profile = profiles[profileId];
   if (!profile) return false;
+  const slot = profile.slots.find((candidate) => candidate.id === slotId);
+  if (!slot) return false;
+  const confirmed = await Dialog.confirm({
+    title: "Delete Equipment Slot",
+    content: `<p>Delete <strong>${escapeHtml(slot.label)}</strong>?</p>`,
+    defaultYes: false
+  });
+  if (!confirmed) return false;
   profile.slots = profile.slots.filter((slot) => slot.id !== slotId);
   profiles[profileId] = normalizeProfile(profile);
   await saveProfileStore(profiles);
