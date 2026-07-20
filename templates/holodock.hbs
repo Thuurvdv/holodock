@@ -24,79 +24,75 @@
 
   {{#if selectedProfile}}
     <div class="hd-layout">
-      <aside class="hd-profile-panel">
-        <form data-hd-profile-form>
-          <label>
-            <span>Ship Name</span>
-            <input type="text" name="name" value="{{selectedProfile.name}}" {{#unless canEdit}}disabled{{/unless}}>
-          </label>
-          <label>
-            <span>Class / Type</span>
-            <input type="text" name="shipClass" value="{{selectedProfile.shipClass}}" placeholder="Optional" {{#unless canEdit}}disabled{{/unless}}>
-          </label>
-          <label>
-            <span>Image Path</span>
-            <span class="hd-image-field">
-              <input type="text" name="image" value="{{selectedProfile.image}}" placeholder="modules/holodock/assets/SpaceshipDefault.webp" {{#unless canEdit}}disabled{{/unless}}>
-              {{#if canEdit}}
+      {{#if canEdit}}
+        <aside class="hd-profile-panel">
+          <form data-hd-profile-form>
+            <label>
+              <span>Ship Name</span>
+              <input type="text" name="name" value="{{selectedProfile.name}}">
+            </label>
+            <label>
+              <span>Class / Type</span>
+              <input type="text" name="shipClass" value="{{selectedProfile.shipClass}}" placeholder="Optional">
+            </label>
+            <label>
+              <span>Image Path</span>
+              <span class="hd-image-field">
+                <input type="text" name="image" value="{{selectedProfile.image}}" placeholder="modules/holodock/assets/SpaceshipDefault.webp">
                 <button type="button" data-hd-action="browse-image" title="Choose ship image"><i class="fa-solid fa-folder-open"></i></button>
-              {{/if}}
-            </span>
-          </label>
-          {{#if canEdit}}
+              </span>
+            </label>
+            <label>
+              <span>Power Capacity</span>
+              <input type="number" name="powerCapacity" value="{{selectedProfile.powerCapacity}}" min="0" step="1" placeholder="0 for untracked">
+            </label>
             <button type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Ship</button>
-          {{/if}}
-        </form>
+          </form>
 
-        <section class="hd-slot-tools">
-          <div>
-            <p class="hd-kicker">Equipment Slots</p>
-            <strong>{{selectedProfile.slots.length}} slots</strong>
-          </div>
-          {{#if canEdit}}
-            <button type="button" data-hd-action="create-slot"><i class="fa-solid fa-plus"></i> Add Slot</button>
-          {{/if}}
-        </section>
-
-        <section class="hd-stat-panel">
-          <div class="hd-section-heading">
+          <section class="hd-slot-tools">
             <div>
-              <p class="hd-kicker">Ship Statistics</p>
-              <strong>{{selectedProfile.stats.length}} entries</strong>
+              <p class="hd-kicker">Equipment Slots</p>
+              <strong>{{selectedProfile.slots.length}} slots</strong>
             </div>
-            {{#if canEdit}}
-              <button type="button" data-hd-action="create-stat" title="Add statistic"><i class="fa-solid fa-plus"></i></button>
-            {{/if}}
-          </div>
+            <button type="button" data-hd-action="create-slot"><i class="fa-solid fa-plus"></i> Add Slot</button>
+          </section>
 
-          {{#if selectedProfile.stats.length}}
-            <div class="hd-stat-list">
-              {{#each selectedProfile.stats as |stat|}}
-                <article class="hd-stat">
-                  <div>
-                    <span>{{stat.label}}</span>
-                    <strong>{{stat.value}}</strong>
-                    {{#if stat.note}}<small>{{stat.note}}</small>{{/if}}
-                  </div>
-                  {{#if ../canEdit}}
+          <section class="hd-stat-panel">
+            <div class="hd-section-heading">
+              <div>
+                <p class="hd-kicker">Ship Statistics</p>
+                <strong>{{selectedProfile.stats.length}} entries</strong>
+              </div>
+              <button type="button" data-hd-action="create-stat" title="Add statistic"><i class="fa-solid fa-plus"></i></button>
+            </div>
+
+            {{#if selectedProfile.stats.length}}
+              <div class="hd-stat-list">
+                {{#each selectedProfile.stats as |stat|}}
+                  <article class="hd-stat">
+                    <div>
+                      <span>{{stat.label}}</span>
+                      <strong>{{stat.value}}</strong>
+                      {{#if stat.note}}<small>{{stat.note}}</small>{{/if}}
+                    </div>
                     <div class="hd-stat-actions">
                       <button type="button" data-hd-edit-stat="{{stat.id}}" title="Edit statistic"><i class="fa-solid fa-pen-to-square"></i></button>
                       <button type="button" data-hd-delete-stat="{{stat.id}}" title="Delete statistic"><i class="fa-solid fa-trash"></i></button>
                     </div>
-                  {{/if}}
-                </article>
-              {{/each}}
-            </div>
-          {{else}}
-            <p class="hd-muted">No statistics configured.</p>
-          {{/if}}
-        </section>
-      </aside>
+                  </article>
+                {{/each}}
+              </div>
+            {{else}}
+              <p class="hd-muted">No statistics configured.</p>
+            {{/if}}
+          </section>
+        </aside>
+      {{/if}}
 
       <main class="hd-stage">
         <svg class="hd-link-layer" data-hd-link-lines aria-hidden="true"></svg>
 
-        <section class="hd-ship-focus">
+        <div class="hd-stage-header">
           <div class="hd-ship-title">
             <div>
               <p class="hd-kicker">Active Vessel</p>
@@ -105,12 +101,107 @@
             <p>{{hdFallback selectedProfile.shipClass "Unclassified vessel"}}</p>
           </div>
 
+          <section class="hd-power-budget {{#if selectedProfile.power.isOverBudget}}is-over-budget{{/if}}" aria-label="Ship power budget">
+            <div>
+              <p class="hd-kicker">Power Budget</p>
+              <strong>{{selectedProfile.power.summary}}</strong>
+              {{#if selectedProfile.power.hasCapacity}}
+                <small>{{#if selectedProfile.power.isOverBudget}}Over budget by {{selectedProfile.power.overage}}{{else}}{{selectedProfile.power.remaining}} remaining{{/if}}</small>
+              {{else}}
+                <small>Capacity untracked</small>
+              {{/if}}
+            </div>
+            {{#if selectedProfile.power.isOverBudget}}
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            {{else}}
+              <i class="fa-solid fa-bolt"></i>
+            {{/if}}
+          </section>
+
+          <section class="hd-dashboard {{#if selectedProfile.dashboard.hasAlerts}}has-alerts{{/if}}" aria-label="Ship systems dashboard">
+            {{#if canEdit}}
+              <section class="hd-power-presets" aria-label="Power presets">
+                <div class="hd-power-presets-heading">
+                  <div>
+                    <p class="hd-kicker">Power Presets</p>
+                    <strong>{{#if selectedProfile.hasPowerPresets}}{{selectedProfile.powerPresets.length}} saved{{else}}No presets{{/if}}</strong>
+                  </div>
+                  <button type="button" data-hd-action="save-power-preset" title="Save current allocation"><i class="fa-solid fa-floppy-disk"></i> Save Current</button>
+                </div>
+                {{#if selectedProfile.hasPowerPresets}}
+                  <div class="hd-power-preset-list">
+                    {{#each selectedProfile.powerPresets as |preset|}}
+                      <article class="hd-power-preset {{#if preset.isCurrent}}is-current{{/if}}">
+                        <button type="button" data-hd-apply-power-preset="{{preset.id}}" title="{{preset.summary}}">
+                          <i class="fa-solid fa-sliders"></i>
+                          <span>
+                            <strong>{{preset.name}}</strong>
+                            <small>{{preset.summary}}</small>
+                          </span>
+                        </button>
+                        <button type="button" data-hd-delete-power-preset="{{preset.id}}" title="Delete preset"><i class="fa-solid fa-trash"></i></button>
+                      </article>
+                    {{/each}}
+                  </div>
+                {{/if}}
+              </section>
+            {{/if}}
+
+            <div class="hd-dashboard-tiles">
+              {{#each selectedProfile.dashboard.tiles as |tile|}}
+                <article class="hd-dashboard-tile {{tile.stateClass}}">
+                  <i class="fa-solid {{tile.icon}}"></i>
+                  <span>{{tile.label}}</span>
+                  <strong>{{tile.value}}</strong>
+                  <small>{{tile.note}}</small>
+                </article>
+              {{/each}}
+            </div>
+
+            {{#if selectedProfile.dashboard.hasSystems}}
+              <div class="hd-dashboard-systems" aria-label="Installed ship systems">
+                {{#each selectedProfile.dashboard.systems as |system|}}
+                  <article class="hd-dashboard-system {{system.stateClass}}">
+                    <img src="{{system.itemImg}}" alt="">
+                    <div>
+                      <strong>{{system.itemName}}</strong>
+                      <small>{{system.slotLabel}} | {{system.category}}</small>
+                    </div>
+                    {{#if system.powerEnabled}}
+                      <span class="hd-system-chip">{{system.powerState}} - {{system.powerAllocationText}}</span>
+                    {{/if}}
+                    {{#if system.durabilityEnabled}}
+                      <span class="hd-system-chip">{{system.durabilityText}}</span>
+                    {{/if}}
+                    <span class="hd-system-state"><i class="fa-solid {{system.icon}}"></i>{{system.state}}</span>
+                  </article>
+                {{/each}}
+              </div>
+            {{/if}}
+          </section>
+
+          {{#unless canEdit}}
+            {{#if selectedProfile.stats.length}}
+              <div class="hd-player-stats" aria-label="Ship statistics">
+                {{#each selectedProfile.stats as |stat|}}
+                  <article class="hd-player-stat">
+                    <span>{{stat.label}}</span>
+                    <strong>{{stat.value}}</strong>
+                    {{#if stat.note}}<small>{{stat.note}}</small>{{/if}}
+                  </article>
+                {{/each}}
+              </div>
+            {{/if}}
+          {{/unless}}
+        </div>
+
+        <section class="hd-ship-focus">
           <div class="hd-ship-image-wrap" data-hd-ship-map>
             <img src="{{selectedProfile.image}}" alt="{{selectedProfile.name}}" onerror="this.src='modules/holodock/assets/SpaceshipDefault.webp'">
             {{#each selectedProfile.slots as |slot|}}
               {{#if slot.hasAnchor}}
                 <button type="button" class="hd-anchor-pin" data-hd-anchor-slot="{{slot.id}}" data-hd-anchor-x="{{slot.anchorX}}" data-hd-anchor-y="{{slot.anchorY}}" title="{{slot.label}}">
-                  <span>{{slot.label}}</span>
+                  <span class="sr-only">{{slot.label}}</span>
                 </button>
               {{/if}}
             {{/each}}
@@ -127,6 +218,7 @@
                 </div>
                 {{#if ../canEdit}}
                   <div class="hd-slot-actions">
+                    <button type="button" data-hd-browse-equipment="{{slot.id}}" title="Choose equipment"><i class="fa-solid fa-list-check"></i></button>
                     <button type="button" data-hd-link-slot="{{slot.id}}" title="Place link on ship"><i class="fa-solid fa-location-dot"></i></button>
                     {{#if slot.hasAnchor}}
                       <button type="button" data-hd-clear-link="{{slot.id}}" title="Clear ship link"><i class="fa-solid fa-link-slash"></i></button>
@@ -140,6 +232,12 @@
               {{#if slot.description}}
                 <p class="hd-slot-description">{{slot.description}}</p>
               {{/if}}
+              {{#if slot.hasCompatibilityRules}}
+                <p class="hd-slot-compatibility">
+                  <i class="fa-solid fa-filter"></i>
+                  {{slot.compatibilitySummary}}
+                </p>
+              {{/if}}
 
               {{#if slot.item}}
                 <button type="button" class="hd-equipped-item" data-hd-open-item="{{slot.id}}">
@@ -152,6 +250,72 @@
                 {{#if slot.item.description}}
                   <div class="hd-item-description">{{{slot.item.description}}}</div>
                 {{/if}}
+                {{#if slot.item.equipment.enabled}}
+                  <div class="hd-equipment-meta">
+                    {{#if slot.item.equipment.badges.length}}
+                      <div class="hd-equipment-badges" aria-label="Ship equipment capabilities">
+                        {{#each slot.item.equipment.badges as |badge|}}
+                          <span>{{badge}}</span>
+                        {{/each}}
+                      </div>
+                    {{/if}}
+                    {{#if slot.item.equipment.hasTags}}
+                      <p class="hd-equipment-tags">{{slot.item.equipment.tagsText}}</p>
+                    {{/if}}
+                    {{#if slot.item.equipment.durability.enabled}}
+                      <div class="hd-equipment-durability {{#if slot.item.equipment.durability.isBroken}}is-broken{{else}}{{#if slot.item.equipment.durability.isDamaged}}is-damaged{{/if}}{{/if}}">
+                        <div>
+                          <span>Durability</span>
+                          <strong>{{slot.item.equipment.durability.value}} / {{slot.item.equipment.durability.max}}</strong>
+                          <small>{{slot.item.equipment.durability.state}}</small>
+                        </div>
+                        {{#if ../canEdit}}
+                          <div class="hd-durability-actions">
+                            <button type="button" data-hd-durability-adjust="{{slot.id}}" data-hd-durability-delta="-1" title="Damage equipment"><i class="fa-solid fa-minus"></i></button>
+                            <button type="button" data-hd-durability-adjust="{{slot.id}}" data-hd-durability-delta="1" title="Repair equipment"><i class="fa-solid fa-plus"></i></button>
+                            <button type="button" data-hd-durability-set="{{slot.id}}" title="Set durability"><i class="fa-solid fa-pen-to-square"></i></button>
+                          </div>
+                        {{/if}}
+                      </div>
+                    {{/if}}
+                    {{#if slot.item.equipment.power.enabled}}
+                      <div class="hd-equipment-power {{#if slot.item.equipment.power.isOffline}}is-offline{{/if}} {{#if slot.item.equipment.power.isUnderpowered}}is-underpowered{{/if}}">
+                        <div>
+                          <span>Power Allocation</span>
+                          <strong>{{slot.item.equipment.power.allocationText}}</strong>
+                          <small>{{slot.item.equipment.power.state}}</small>
+                        </div>
+                        <div class="hd-power-meter" aria-hidden="true">
+                          <span style="width: {{slot.item.equipment.power.allocationPercent}}%"></span>
+                        </div>
+                        {{#if ../canEdit}}
+                          <div class="hd-power-actions">
+                            <button type="button" data-hd-power-adjust="{{slot.id}}" data-hd-power-delta="-1" title="Decrease allocation"><i class="fa-solid fa-minus"></i></button>
+                            <input type="number" min="0" step="1" value="{{slot.item.equipment.power.allocated}}" data-hd-power-allocation="{{slot.id}}" title="Power allocation">
+                            <button type="button" data-hd-power-adjust="{{slot.id}}" data-hd-power-delta="1" title="Increase allocation"><i class="fa-solid fa-plus"></i></button>
+                            {{#if slot.item.equipment.power.isOffline}}
+                              <button type="button" data-hd-power-toggle="{{slot.id}}" data-hd-power-online="true" title="Bring system online"><i class="fa-solid fa-power-off"></i> Online</button>
+                            {{else}}
+                              <button type="button" data-hd-power-toggle="{{slot.id}}" data-hd-power-online="false" title="Take system offline"><i class="fa-solid fa-power-off"></i> Offline</button>
+                            {{/if}}
+                          </div>
+                        {{/if}}
+                      </div>
+                    {{/if}}
+                    {{#if slot.item.equipment.activation.enabled}}
+                      {{#if slot.item.equipment.activation.blockedReason}}
+                        <p class="hd-activation-cost">{{slot.item.equipment.activation.blockedReason}}</p>
+                      {{/if}}
+                      {{#if slot.item.equipment.activation.durabilityCost}}
+                        <p class="hd-activation-cost">Activation cost: {{slot.item.equipment.activation.durabilityCost}} durability</p>
+                      {{/if}}
+                      <button type="button" class="hd-activate-equipment {{#if slot.item.equipment.activation.isBlocked}}is-blocked{{/if}}" data-hd-activate-equipment="{{slot.id}}" {{#if slot.item.equipment.activation.isBlocked}}disabled{{/if}}>
+                        <i class="fa-solid fa-bolt"></i>
+                        {{slot.item.equipment.activation.label}}
+                      </button>
+                    {{/if}}
+                  </div>
+                {{/if}}
                 {{#if ../canEdit}}
                   <button type="button" class="hd-remove-item" data-hd-remove-item="{{slot.id}}">
                     <i class="fa-solid fa-xmark"></i>
@@ -162,6 +326,12 @@
                 <div class="hd-drop-target">
                   <i class="fa-solid fa-download"></i>
                   <span>{{#if ../canEdit}}Drop Item Here{{else}}Empty Slot{{/if}}</span>
+                  {{#if ../canEdit}}
+                    <button type="button" data-hd-browse-equipment="{{slot.id}}">
+                      <i class="fa-solid fa-list-check"></i>
+                      Choose Equipment
+                    </button>
+                  {{/if}}
                 </div>
               {{/if}}
             </article>
