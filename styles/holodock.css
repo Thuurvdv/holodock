@@ -219,7 +219,9 @@
   display: grid;
   gap: 12px;
   max-height: 520px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
 }
 
 .hd-equipment-pick-list {
@@ -233,8 +235,25 @@
   align-items: center;
   gap: 10px;
   width: 100%;
+  box-sizing: border-box;
   min-height: 58px;
+  padding: 9px;
+  border: 1px solid var(--hs-border-subtle);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--hs-field) 72%, transparent);
+  color: var(--hs-text-primary);
   text-align: left;
+}
+
+.hd-equipment-pick:hover,
+.hd-equipment-pick:focus {
+  border-color: var(--hd-blue);
+  background: color-mix(in srgb, var(--hs-color-primary) 16%, var(--hs-field));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--hs-color-primary) 18%, transparent);
+}
+
+.hd-equipment-pick strong {
+  color: var(--hs-text-primary);
 }
 
 .hd-equipment-pick img {
@@ -262,7 +281,8 @@
 }
 
 .hd-equipment-pick.is-incompatible {
-  opacity: 0.7;
+  opacity: 0.68;
+  background: color-mix(in srgb, var(--hs-field) 44%, transparent);
 }
 
 .hd-incompatible-equipment summary {
@@ -310,6 +330,42 @@
   border-color: var(--hd-blue);
   background: var(--hs-surface-control-hover);
   box-shadow: var(--hs-glow-cyan), var(--hs-shadow-control);
+}
+
+.holodock-window.hd-dialog .window-content,
+.holodock-window.hd-dialog .dialog-content {
+  background:
+    radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--hs-color-primary) 14%, transparent), transparent 38%),
+    var(--hs-surface-window);
+  color: var(--hs-text-primary);
+}
+
+.hd-install-confirm {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--hs-border-subtle);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--hs-field) 62%, transparent);
+}
+
+.hd-install-confirm > i {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: var(--hd-blue);
+  font-size: 20px;
+}
+
+.hd-install-confirm p {
+  margin: 0;
+}
+
+.hd-install-confirm p + p {
+  margin-top: 6px;
 }
 
 .hd-shell textarea {
@@ -481,6 +537,7 @@
   stroke-linecap: round;
   filter: drop-shadow(0 0 6px color-mix(in srgb, var(--hd-status-color, var(--hs-color-primary)) 45%, transparent));
   opacity: 0.95;
+  transition: opacity 120ms ease;
 }
 
 .hd-link-line.is-online,
@@ -1349,6 +1406,11 @@
   margin: 0;
 }
 
+.hd-chat-card h3 {
+  color: var(--hs-text-primary, #f4fbff);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--hs-color-primary, #7adbff) 28%, transparent);
+}
+
 .hd-chat-card dl {
   display: grid;
   gap: 5px;
@@ -1376,6 +1438,42 @@
 .hd-chat-card dd {
   margin: 0;
   text-align: right;
+}
+
+.hd-chat-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hd-chat-actions button {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--hs-border-subtle, rgba(122, 219, 255, 0.34));
+  border-radius: var(--hs-radius, 4px);
+  background: color-mix(in srgb, var(--hs-field, #101821) 78%, transparent);
+  color: var(--hs-text-primary, #f4fbff);
+}
+
+.hd-chat-actions button:hover {
+  border-color: var(--hs-color-primary, #7adbff);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--hs-color-primary, #7adbff) 22%, transparent);
+}
+
+.hd-install-request-status {
+  padding: 8px;
+  border-radius: var(--hs-radius, 4px);
+  background: color-mix(in srgb, var(--hs-field, #101821) 62%, transparent);
+  color: var(--hs-text-primary, #f4fbff);
+}
+
+.hd-install-request-status.is-approved {
+  border: 1px solid var(--hd-online, #31d6a0);
+}
+
+.hd-install-request-status.is-rejected {
+  border: 1px solid var(--hs-color-danger, #ff5f6d);
 }
 
 .hd-chat-card.is-blocked {

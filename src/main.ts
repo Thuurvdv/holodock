@@ -19,10 +19,8 @@ type ShipSlot = {
   label: string;
   category: string;
   description: string;
-  requireShipEquipment: boolean;
   requiredCategory: string;
   requiredTags: string[];
-  allowUntagged: boolean;
   anchorX?: number;
   anchorY?: number;
   itemUuid?: string;
@@ -47,12 +45,19 @@ type ShipPowerPreset = {
   entries: ShipPowerPresetEntry[];
 };
 
+type ShipPermissions = {
+  hiddenFromPlayers: boolean;
+  allowPlayerEquip: boolean;
+  allowPlayerActivate: boolean;
+};
+
 type ShipProfile = {
   id: string;
   name: string;
   shipClass: string;
   image: string;
   powerCapacity: number;
+  permissions: ShipPermissions;
   powerPresets: ShipPowerPreset[];
   stats: ShipStat[];
   slots: ShipSlot[];
@@ -127,12 +132,26 @@ type PowerPresetPreviewChange = {
   stateClass: string;
 };
 
+type HoloDockSocketMessage = {
+  action: "equipItem" | "equipItemResult";
+  requestId?: string;
+  userId?: string;
+  profileId?: string;
+  slotId?: string;
+  itemUuid?: string;
+  ok?: boolean;
+  message?: string;
+};
+
 const LegacyApplication = getApplicationBase();
 
 let holodockApp: HoloDockApp | null = null;
 let selectedProfileId = "";
 let selectedPage = "overview";
 let selectedEquipmentSlotId = "";
+let lastEquipmentDialogOpenKey = "";
+let lastEquipmentDialogOpenAt = 0;
+const SOCKET_NAME = `module.${MODULE_ID}`;
 
 const HOLODOCK_PAGES = [
   { id: "overview", label: "Overview", icon: "fa-solid fa-display" },
@@ -146,17 +165,16 @@ const HOLODOCK_PAGES = [
 function normalizeSlot(data: Partial<ShipSlot> = {}): ShipSlot {
   const anchorX = Number(data.anchorX);
   const anchorY = Number(data.anchorY);
+  const category = String(data.category || data.label || DEFAULT_CATEGORIES[0]).trim() || DEFAULT_CATEGORIES[0];
   return {
     id: String(data.id || createId("slot")),
-    label: String(data.label || "Equipment Slot").trim() || "Equipment Slot",
-    category: String(data.category || DEFAULT_CATEGORIES[0]).trim() || DEFAULT_CATEGORIES[0],
+    label: category,
+    category,
     description: String(data.description || "").trim(),
-    requireShipEquipment: data.requireShipEquipment === true,
     requiredCategory: String(data.requiredCategory || "").trim(),
     requiredTags: Array.isArray(data.requiredTags)
       ? data.requiredTags.map((tag) => String(tag).trim()).filter(Boolean)
       : [],
-    allowUntagged: data.allowUntagged !== false,
     anchorX: Number.isFinite(anchorX) ? Math.min(100, Math.max(0, anchorX)) : undefined,
     anchorY: Number.isFinite(anchorY) ? Math.min(100, Math.max(0, anchorY)) : undefined,
     itemUuid: String(data.itemUuid || "").trim() || undefined
@@ -190,6 +208,14 @@ function normalizePowerPreset(data: Partial<ShipPowerPreset> = {}): ShipPowerPre
   };
 }
 
+function normalizePermissions(data: Partial<ShipPermissions> = {}): ShipPermissions {
+  return {
+    hiddenFromPlayers: data.hiddenFromPlayers === true,
+    allowPlayerEquip: data.allowPlayerEquip === true,
+    allowPlayerActivate: data.allowPlayerActivate !== false
+  };
+}
+
 function normalizeProfile(data: Partial<ShipProfile> = {}): ShipProfile {
   const image = String(data.image || DEFAULT_IMAGE).trim() || DEFAULT_IMAGE;
   return {
@@ -198,6 +224,7 @@ function normalizeProfile(data: Partial<ShipProfile> = {}): ShipProfile {
     shipClass: String(data.shipClass || "").trim(),
     image: image === LEGACY_DEFAULT_IMAGE ? DEFAULT_IMAGE : image,
     powerCapacity: Math.max(0, normalizeNumber(data.powerCapacity, 0)),
+    permissions: normalizePermissions(data.permissions),
     powerPresets: Array.isArray(data.powerPresets) ? data.powerPresets.map(normalizePowerPreset) : [],
     stats: Array.isArray(data.stats) ? data.stats.map(normalizeStat) : [],
     slots: Array.isArray(data.slots) ? data.slots.map(normalizeSlot) : []
@@ -217,15 +244,11 @@ function normalizeTags(value: unknown): string[] {
     .filter(Boolean);
 }
 
-function checkedAttr(value: boolean): string {
-  return value ? "checked" : "";
-}
-
 function normalizeShipEquipmentData(data: Partial<ShipEquipmentData> = {}): ShipEquipmentData {
   const durabilityMax = Math.max(0, normalizeNumber(data.durability?.max, 0));
   const durabilityValue = Math.min(durabilityMax, Math.max(0, normalizeNumber(data.durability?.value, durabilityMax)));
   const category = String(data.category || DEFAULT_CATEGORIES[0]).trim() || DEFAULT_CATEGORIES[0];
-  return {
+  const normalized = {
     enabled: data.enabled === true,
     category,
     tags: normalizeTags(data.tags),
@@ -252,6 +275,24 @@ function normalizeShipEquipmentData(data: Partial<ShipEquipmentData> = {}): Ship
       online: data.power?.online !== false
     }
   };
+  return applyShipEquipmentAutomations(normalized);
+}
+
+function applyShipEquipmentAutomations(equipment: ShipEquipmentData): ShipEquipmentData {
+  const automated = clone(equipment) as ShipEquipmentData;
+  const isBroken = automated.enabled
+    && automated.durability.enabled
+    && automated.durability.value <= automated.durability.brokenAt;
+  const hasNoRequiredPower = automated.enabled
+    && automated.power.enabled
+    && automated.power.draw > 0
+    && automated.power.allocated <= 0;
+
+  if (!automated.enabled) return automated;
+  if (automated.power.enabled && (hasNoRequiredPower || isBroken)) {
+    automated.power.online = false;
+  }
+  return automated;
 }
 
 function getShipEquipmentData(item: any): ShipEquipmentData {
@@ -517,6 +558,12 @@ function getProfiles(): ShipProfile[] {
   return Object.values(getProfileStore()).sort((left, right) => left.name.localeCompare(right.name));
 }
 
+function getVisibleProfiles(): ShipProfile[] {
+  const profiles = getProfiles();
+  if (game.user?.isGM) return profiles;
+  return profiles.filter((profile) => !profile.permissions.hiddenFromPlayers);
+}
+
 function getDefaultProfileId(): string {
   return String(game.settings.get(MODULE_ID, SETTING_DEFAULT_PROFILE) || "");
 }
@@ -525,8 +572,8 @@ async function setDefaultProfileId(profileId: string): Promise<void> {
   await game.settings.set(MODULE_ID, SETTING_DEFAULT_PROFILE, profileId);
 }
 
-async function saveProfileStore(profiles: Record<string, ShipProfile>): Promise<void> {
-  if (!requireGM("save ship loadouts")) return;
+async function saveProfileStore(profiles: Record<string, ShipProfile>, options: { requireGm?: boolean } = {}): Promise<void> {
+  if (options.requireGm !== false && !requireGM("save ship loadouts")) return;
   await game.settings.set(MODULE_ID, SETTING_PROFILES, profiles);
   refreshOpenApp();
 }
@@ -546,7 +593,7 @@ async function rememberCategory(category: string): Promise<void> {
 }
 
 function getSelectedProfile(): ShipProfile | null {
-  const profiles = getProfiles();
+  const profiles = getVisibleProfiles();
   if (!profiles.length) return null;
   if (!selectedProfileId || !profiles.some((profile) => profile.id === selectedProfileId)) {
     const defaultProfileId = getDefaultProfileId();
@@ -601,9 +648,27 @@ async function updateProfileMetadata(profileId: string, metadata: Partial<ShipPr
     shipClass: metadata.shipClass,
     image: metadata.image,
     powerCapacity: metadata.powerCapacity,
+    permissions: existing.permissions,
     powerPresets: existing.powerPresets,
     stats: existing.stats,
     slots: existing.slots
+  });
+  profiles[profileId] = updated;
+  await saveProfileStore(profiles);
+  return updated;
+}
+
+async function updateProfilePermissions(profileId: string, permissions: Partial<ShipPermissions>): Promise<ShipProfile | null> {
+  if (!requireGM("update HoloDock player rights")) return null;
+  const profiles = clone(getProfileStore());
+  const existing = profiles[profileId];
+  if (!existing) return null;
+  const updated = normalizeProfile({
+    ...existing,
+    permissions: {
+      ...existing.permissions,
+      ...permissions
+    }
   });
   profiles[profileId] = updated;
   await saveProfileStore(profiles);
@@ -911,24 +976,22 @@ async function clearSlotAnchor(profileId: string, slotId: string): Promise<boole
 
 function getSlotCompatibilitySummary(slot: ShipSlot): string {
   const rules: string[] = [];
-  if (slot.requireShipEquipment) rules.push("Ship equipment required");
   if (slot.requiredCategory) rules.push(`Category: ${slot.requiredCategory}`);
   if (slot.requiredTags.length) rules.push(`Tags: ${slot.requiredTags.join(", ")}`);
-  if (!slot.allowUntagged && !slot.requireShipEquipment) rules.push("Tagged items only");
   return rules.join(" | ");
 }
 
-function validateItemForSlot(slot: ShipSlot, item: any): { ok: boolean; reason?: string } {
-  const equipment = getShipEquipmentData(item);
-  const hasCategoryRule = Boolean(slot.requiredCategory);
-  const hasTagRules = slot.requiredTags.length > 0;
-  const needsTaggedItem = slot.requireShipEquipment || hasCategoryRule || hasTagRules || !slot.allowUntagged;
+function getInstallEquipmentData(slot: ShipSlot, item: any): ShipEquipmentData {
+  const current = getShipEquipmentData(item);
+  if (current.enabled) return current;
+  return normalizeShipEquipmentData({
+    ...current,
+    enabled: true,
+    category: slot.requiredCategory || slot.category
+  });
+}
 
-  if (!equipment.enabled) {
-    if (!needsTaggedItem) return { ok: true };
-    return { ok: false, reason: "That slot only accepts HoloDock ship equipment." };
-  }
-
+function validateItemForSlot(slot: ShipSlot, item: any, equipment = getInstallEquipmentData(slot, item)): { ok: boolean; reason?: string } {
   if (slot.requiredCategory && equipment.category.toLowerCase() !== slot.requiredCategory.toLowerCase()) {
     return { ok: false, reason: `That slot requires ${slot.requiredCategory} ship equipment.` };
   }
@@ -942,24 +1005,293 @@ function validateItemForSlot(slot: ShipSlot, item: any): { ok: boolean; reason?:
   return { ok: true };
 }
 
-async function equipItem(profileId: string, slotId: string, itemUuid: string): Promise<boolean> {
-  if (!requireGM("equip items")) return false;
+async function confirmEquipmentInstall(slot: ShipSlot, item: any, willConvert: boolean): Promise<boolean> {
+  return Dialog.confirm({
+    title: "Install Ship Equipment",
+    content: `
+      <section class="hd-install-confirm">
+        <i class="fa-solid fa-shuttle-space"></i>
+        <div>
+          <p>Install <strong>${escapeHtml(item?.name ?? "this item")}</strong> into <strong>${escapeHtml(slot.label)}</strong>?</p>
+          ${willConvert ? `<p class="hd-muted">This item will be converted into HoloDock ship equipment so it can be tracked by the ship.</p>` : `<p class="hd-muted">This item is already HoloDock ship equipment and will be assigned to this slot.</p>`}
+        </div>
+      </section>
+    `,
+    defaultYes: true
+  }, {
+    classes: ["holodock-window", "hd-dialog", "hd-install-dialog"],
+    width: 440
+  });
+}
+
+function canUserEquip(profile: ShipProfile | null): boolean {
+  return game.user?.isGM === true || profile?.permissions.allowPlayerEquip === true;
+}
+
+function canUserActivate(profile: ShipProfile | null): boolean {
+  return game.user?.isGM === true || profile?.permissions.allowPlayerActivate === true;
+}
+
+async function performEquipmentInstall(profileId: string, slotId: string, itemUuid: string, options: { openEditor?: boolean } = {}): Promise<{ ok: boolean; message: string }> {
   const item = await resolveItem(itemUuid);
   if (!item) {
-    ui.notifications?.warn?.("Drop a regular Foundry Item onto the slot.");
-    return false;
+    return { ok: false, message: "Drop a Foundry Item onto the equipment slot." };
   }
   const profiles = clone(getProfileStore());
-  const slot = profiles[profileId]?.slots.find((candidate) => candidate.id === slotId);
+  const profile = profiles[profileId];
+  const slot = profile?.slots.find((candidate) => candidate.id === slotId);
+  if (!profile || !slot) return { ok: false, message: "That ship slot could not be found." };
+  if (!profile.permissions.allowPlayerEquip && !game.user?.isGM) {
+    return { ok: false, message: "Players are not allowed to install equipment on this ship." };
+  }
+  if (slot.itemUuid) return { ok: false, message: "That equipment slot is already occupied." };
+  const normalizedSlot = normalizeSlot(slot);
+  const currentEquipment = getShipEquipmentData(item);
+  const installEquipment = getInstallEquipmentData(normalizedSlot, item);
+  const compatibility = validateItemForSlot(normalizedSlot, item, installEquipment);
+  if (!compatibility.ok) {
+    return { ok: false, message: compatibility.reason ?? "That item is not compatible with this ship slot." };
+  }
+  if (!currentEquipment.enabled) {
+    const converted = await setShipEquipmentData(item, installEquipment, { requireGm: game.user?.isGM !== true ? false : undefined });
+    if (!converted?.enabled) return { ok: false, message: "That item could not be converted into ship equipment." };
+  }
+  slot.itemUuid = item.uuid;
+  await saveProfileStore(profiles);
+  if (options.openEditor && !currentEquipment.enabled) window.setTimeout(() => openShipEquipmentDialog(item), 50);
+  return { ok: true, message: `${item.name ?? "Item"} installed in ${normalizedSlot.label}.` };
+}
+
+function getPrimaryActiveGmId(): string {
+  const users = game.users;
+  const list = Array.isArray(users) ? users : Array.isArray(users?.contents) ? users.contents : Array.from(users ?? []);
+  const activeGms = list
+    .filter((user: any) => user?.active && user?.isGM)
+    .sort((left: any, right: any) => String(left.id ?? "").localeCompare(String(right.id ?? "")));
+  return String(activeGms[0]?.id ?? "");
+}
+
+function emitSocketMessage(message: HoloDockSocketMessage): void {
+  game.socket?.emit?.(SOCKET_NAME, message);
+}
+
+function getUserName(userId: string | undefined): string {
+  const users = game.users;
+  const user = users?.get?.(userId) ?? users?.find?.((candidate: any) => candidate?.id === userId);
+  return String(user?.name || "A player");
+}
+
+async function confirmGmEquipmentInstallRequest(message: HoloDockSocketMessage): Promise<boolean> {
+  const profile = getProfile(String(message.profileId || ""));
+  const slot = profile?.slots.find((candidate) => candidate.id === message.slotId);
+  const item = await resolveItem(String(message.itemUuid || ""));
+  if (!profile || !slot || !item) return false;
+  return Dialog.confirm({
+    title: "Player Ship Equipment Install",
+    content: `
+      <section class="hd-install-confirm">
+        <i class="fa-solid fa-user-shield"></i>
+        <div>
+          <p><strong>${escapeHtml(getUserName(message.userId))}</strong> wants to install <strong>${escapeHtml(item.name ?? "this item")}</strong>.</p>
+          <p class="hd-muted">Ship: ${escapeHtml(profile.name)} | Slot: ${escapeHtml(slot.label)}</p>
+          <p class="hd-muted">Approving will convert the item to HoloDock ship equipment if needed and place it in the empty slot.</p>
+        </div>
+      </section>
+    `,
+    defaultYes: true
+  }, {
+    classes: ["holodock-window", "hd-dialog", "hd-install-dialog"],
+    width: 480
+  });
+}
+
+async function requestGmEquipmentInstall(profileId: string, slotId: string, itemUuid: string): Promise<boolean> {
+  const chatMessage = (globalThis as any).ChatMessage;
+  if (!chatMessage?.create) {
+    ui.notifications?.warn?.("Foundry chat is not available for ship equipment requests.");
+    return false;
+  }
+  const requestId = createId("equip");
+  const profile = getProfile(profileId);
+  const slot = profile?.slots.find((candidate) => candidate.id === slotId);
+  const item = await resolveItem(itemUuid);
+  if (!profile || !slot || !item) {
+    ui.notifications?.warn?.("That ship equipment request could not be prepared.");
+    return false;
+  }
+  await chatMessage.create({
+    user: game.user?.id,
+    speaker: chatMessage.getSpeaker?.() ?? {},
+    content: `
+      <article class="hd-chat-card hd-install-request-card" data-hd-install-request="${escapeHtml(requestId)}" data-hd-profile-id="${escapeHtml(profileId)}" data-hd-slot-id="${escapeHtml(slotId)}" data-hd-item-uuid="${escapeHtml(itemUuid)}" data-hd-user-id="${escapeHtml(game.user?.id ?? "")}">
+        <header>
+          <img src="${escapeHtml(item.img || "icons/svg/item-bag.svg")}" alt="">
+          <div>
+            <p class="hd-kicker">HoloDock Install Request</p>
+            <h3>${escapeHtml(item.name ?? "Ship Equipment")}</h3>
+          </div>
+        </header>
+        <dl>
+          <div><dt>Player</dt><dd>${escapeHtml(game.user?.name ?? "Player")}</dd></div>
+          <div><dt>Ship</dt><dd>${escapeHtml(profile.name)}</dd></div>
+          <div><dt>Slot</dt><dd>${escapeHtml(slot.label)}</dd></div>
+        </dl>
+        <p>A player wants to install this item as HoloDock ship equipment.</p>
+        <footer class="hd-chat-actions">
+          <button type="button" data-hd-install-approve="${escapeHtml(requestId)}"><i class="fa-solid fa-check"></i> Approve</button>
+          <button type="button" data-hd-install-reject="${escapeHtml(requestId)}"><i class="fa-solid fa-xmark"></i> Reject</button>
+        </footer>
+      </article>
+    `,
+    flags: {
+      [MODULE_ID]: {
+        installRequest: {
+          requestId,
+          userId: game.user?.id,
+          profileId,
+          slotId,
+          itemUuid,
+          status: "pending"
+        }
+      }
+    }
+  });
+  ui.notifications?.info?.("HoloDock posted the install request to chat.");
+  return true;
+}
+
+function registerSocketHandlers(): void {
+  game.socket?.on?.(SOCKET_NAME, async (message: HoloDockSocketMessage) => {
+    if (!message || typeof message !== "object") return;
+    if (message.action === "equipItemResult") {
+      if (message.userId && message.userId !== game.user?.id) return;
+      if (message.ok) ui.notifications?.info?.(message.message ?? "Ship equipment installed.");
+      else ui.notifications?.warn?.(message.message ?? "Ship equipment could not be installed.");
+      refreshOpenApp();
+      return;
+    }
+    if (message.action !== "equipItem") return;
+    if (!game.user?.isGM || game.user.id !== getPrimaryActiveGmId()) return;
+    const profile = getProfile(String(message.profileId || ""));
+    if (!profile?.permissions.allowPlayerEquip) {
+      emitSocketMessage({
+        action: "equipItemResult",
+        requestId: message.requestId,
+        userId: message.userId,
+        ok: false,
+        message: "Players are not allowed to install equipment on this ship."
+      });
+      return;
+    }
+    const approved = await confirmGmEquipmentInstallRequest(message);
+    if (!approved) {
+      emitSocketMessage({
+        action: "equipItemResult",
+        requestId: message.requestId,
+        userId: message.userId,
+        ok: false,
+        message: "The GM rejected the ship equipment install request."
+      });
+      return;
+    }
+    const result = await performEquipmentInstall(String(message.profileId || ""), String(message.slotId || ""), String(message.itemUuid || ""), { openEditor: false });
+    emitSocketMessage({
+      action: "equipItemResult",
+      requestId: message.requestId,
+      userId: message.userId,
+      ok: result.ok,
+      message: result.message
+    });
+  });
+}
+
+function getChatMessageFromRender(app: any, html: any = null): any | null {
+  const candidates = [app?.document, app?.message, app?.object, app];
+  for (const candidate of candidates) {
+    if (candidate?.getFlag && candidate?.setFlag) return candidate;
+  }
+  return null;
+}
+
+async function resolveInstallRequestFromChat(message: any, card: HTMLElement): Promise<any | null> {
+  const flag = message?.getFlag?.(MODULE_ID, "installRequest") ?? {};
+  const request = {
+    requestId: String(flag.requestId || card.dataset.hdInstallRequest || ""),
+    userId: String(flag.userId || card.dataset.hdUserId || ""),
+    profileId: String(flag.profileId || card.dataset.hdProfileId || ""),
+    slotId: String(flag.slotId || card.dataset.hdSlotId || ""),
+    itemUuid: String(flag.itemUuid || card.dataset.hdItemUuid || ""),
+    status: String(flag.status || "pending")
+  };
+  return request.requestId && request.profileId && request.slotId && request.itemUuid ? request : null;
+}
+
+async function updateInstallRequestChatCard(message: any, status: "approved" | "rejected", resultMessage: string): Promise<void> {
+  const current = message?.getFlag?.(MODULE_ID, "installRequest") ?? {};
+  await message?.setFlag?.(MODULE_ID, "installRequest", { ...current, status, resultMessage });
+  const content = String(message?.content || "");
+  const statusHtml = `<p class="hd-install-request-status ${status === "approved" ? "is-approved" : "is-rejected"}">${escapeHtml(resultMessage)}</p>`;
+  const nextContent = content.replace(/<footer class="hd-chat-actions">[\s\S]*?<\/footer>/, statusHtml);
+  if (nextContent !== content) await message?.update?.({ content: nextContent });
+}
+
+function activateInstallRequestChatCard(app: any, html: any = null): void {
+  const root = getElement(null, html);
+  const message = getChatMessageFromRender(app, html);
+  if (!root || !message) return;
+  root.querySelectorAll<HTMLElement>("[data-hd-install-request]").forEach((card) => {
+    const bind = (selector: string, handler: (request: any) => Promise<void>) => {
+      card.querySelector<HTMLElement>(selector)?.addEventListener("click", async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!game.user?.isGM) {
+          ui.notifications?.warn?.("Only the GM can answer ship equipment install requests.");
+          return;
+        }
+        const request = await resolveInstallRequestFromChat(message, card);
+        if (!request || request.status !== "pending") return;
+        await handler(request);
+      });
+    };
+    bind("[data-hd-install-approve]", async (request) => {
+      const result = await performEquipmentInstall(request.profileId, request.slotId, request.itemUuid, { openEditor: false });
+      await updateInstallRequestChatCard(message, result.ok ? "approved" : "rejected", result.message);
+      if (result.ok) ui.notifications?.info?.(result.message);
+      else ui.notifications?.warn?.(result.message);
+    });
+    bind("[data-hd-install-reject]", async () => {
+      await updateInstallRequestChatCard(message, "rejected", "The GM rejected the ship equipment install request.");
+      ui.notifications?.info?.("Ship equipment install request rejected.");
+    });
+  });
+}
+
+async function equipItem(profileId: string, slotId: string, itemUuid: string): Promise<boolean> {
+  const profileForPermission = getProfile(profileId);
+  if (!canUserEquip(profileForPermission)) {
+    ui.notifications?.warn?.("Players are not allowed to install equipment on this ship.");
+    return false;
+  }
+  const item = await resolveItem(itemUuid);
+  if (!item) {
+    ui.notifications?.warn?.("Drop a Foundry Item onto the equipment slot.");
+    return false;
+  }
+  const slot = profileForPermission?.slots.find((candidate) => candidate.id === slotId);
   if (!slot) return false;
-  const compatibility = validateItemForSlot(normalizeSlot(slot), item);
+  const currentEquipment = getShipEquipmentData(item);
+  const installEquipment = getInstallEquipmentData(normalizeSlot(slot), item);
+  const compatibility = validateItemForSlot(normalizeSlot(slot), item, installEquipment);
   if (!compatibility.ok) {
     ui.notifications?.warn?.(compatibility.reason ?? "That item is not compatible with this ship slot.");
     return false;
   }
-  slot.itemUuid = item.uuid;
-  await saveProfileStore(profiles);
-  return true;
+  const confirmed = await confirmEquipmentInstall(normalizeSlot(slot), item, !currentEquipment.enabled);
+  if (!confirmed) return false;
+  if (!game.user?.isGM) return requestGmEquipmentInstall(profileId, slotId, itemUuid);
+  const result = await performEquipmentInstall(profileId, slotId, itemUuid, { openEditor: true });
+  if (!result.ok) ui.notifications?.warn?.(result.message);
+  return result.ok;
 }
 
 async function unequipItem(profileId: string, slotId: string): Promise<boolean> {
@@ -1470,7 +1802,12 @@ async function prepareSlotForRender(slot: ShipSlot): Promise<any> {
 async function getRenderContext(): Promise<any> {
   const selectedProfile = getSelectedProfile();
   let preparedProfile: any = null;
+  const isGM = game.user?.isGM === true;
+  let canEquip = isGM;
+  let canActivateSystems = isGM;
   if (selectedProfile) {
+    canEquip = isGM || selectedProfile.permissions.allowPlayerEquip;
+    canActivateSystems = isGM || selectedProfile.permissions.allowPlayerActivate;
     const slots = await Promise.all(selectedProfile.slots.map(prepareSlotForRender));
     const power = getShipPowerBudget({ ...selectedProfile, slots });
     const dashboard = getShipDashboard({ slots, power, stats: selectedProfile.stats });
@@ -1506,7 +1843,7 @@ async function getRenderContext(): Promise<any> {
       powerGrid: preparePowerGrid(slots, power)
     };
   }
-  const profiles = getProfiles().map((profile) => ({
+  const profiles = getVisibleProfiles().map((profile) => ({
     ...profile,
     isSelected: profile.id === selectedProfileId
   }));
@@ -1514,7 +1851,9 @@ async function getRenderContext(): Promise<any> {
   if (!pageIds.has(selectedPage) && selectedPage !== "equipment") selectedPage = "overview";
 
   return {
-    canEdit: game.user?.isGM === true,
+    canEdit: isGM,
+    canEquip,
+    canActivateSystems,
     hasProfiles: profiles.length > 0,
     profiles,
     selectedProfile: preparedProfile,
@@ -1555,16 +1894,67 @@ function getSlotFormValues(html: any): Partial<ShipSlot> {
   const root = html?.[0] ?? html;
   const form = root?.querySelector?.("form") ?? root?.closest?.("form");
   const formData = new FormData(form);
+  const category = String(formData.get("category") || "");
   return {
     id: String(formData.get("id") || ""),
-    label: String(formData.get("label") || ""),
-    category: String(formData.get("category") || ""),
+    label: category,
+    category,
     description: String(formData.get("description") || ""),
-    requireShipEquipment: getCheckbox(formData, "requireShipEquipment"),
     requiredCategory: String(formData.get("requiredCategory") || ""),
-    requiredTags: normalizeTags(formData.get("requiredTags")),
-    allowUntagged: getCheckbox(formData, "allowUntagged")
+    requiredTags: normalizeTags(formData.get("requiredTags"))
   };
+}
+
+function getPermissionFormValues(html: any): Partial<ShipPermissions> {
+  const root = html?.[0] ?? html;
+  const form = root?.querySelector?.("form") ?? root?.closest?.("form");
+  const formData = new FormData(form);
+  return {
+    hiddenFromPlayers: getCheckbox(formData, "hiddenFromPlayers"),
+    allowPlayerEquip: getCheckbox(formData, "allowPlayerEquip"),
+    allowPlayerActivate: getCheckbox(formData, "allowPlayerActivate")
+  };
+}
+
+function openPermissionsDialog(profile: ShipProfile): void {
+  if (!requireGM("set HoloDock player rights")) return;
+  const permissions = normalizePermissions(profile.permissions);
+  const checked = (value: boolean) => value ? "checked" : "";
+  new Dialog({
+    title: `Player Rights: ${profile.name}`,
+    content: `
+      <form class="hd-dialog-form hd-permissions-form">
+        <label class="hd-check">
+          <input type="checkbox" name="hiddenFromPlayers" ${checked(permissions.hiddenFromPlayers)}>
+          <span>Hide ship from players</span>
+        </label>
+        <label class="hd-check">
+          <input type="checkbox" name="allowPlayerEquip" ${checked(permissions.allowPlayerEquip)}>
+          <span>Allow players to drag equipment into empty slots</span>
+        </label>
+        <label class="hd-check">
+          <input type="checkbox" name="allowPlayerActivate" ${checked(permissions.allowPlayerActivate)}>
+          <span>Allow players to activate systems</span>
+        </label>
+        <p class="hd-muted">When activation is disabled, players keep a read-only ship view.</p>
+      </form>
+    `,
+    buttons: {
+      save: {
+        icon: '<i class="fa-solid fa-floppy-disk"></i>',
+        label: "Save",
+        callback: (html) => updateProfilePermissions(profile.id, getPermissionFormValues(html))
+      },
+      cancel: {
+        icon: '<i class="fa-solid fa-xmark"></i>',
+        label: "Cancel"
+      }
+    },
+    default: "save"
+  }, {
+    classes: ["holodock-window", "hd-dialog"],
+    width: 460
+  }).render(true);
 }
 
 function openSlotDialog(slot: Partial<ShipSlot> = {}): void {
@@ -1582,11 +1972,7 @@ function openSlotDialog(slot: Partial<ShipSlot> = {}): void {
       <form class="hd-dialog-form">
         <input type="hidden" name="id" value="${escapeHtml(data.id)}">
         <label>
-          <span>Slot Label</span>
-          <input type="text" name="label" value="${escapeHtml(data.label)}">
-        </label>
-        <label>
-          <span>Category</span>
+          <span>Slot Type</span>
           <input type="text" name="category" value="${escapeHtml(data.category)}" list="hd-slot-categories">
           <datalist id="hd-slot-categories">${categoryOptions}</datalist>
         </label>
@@ -1596,14 +1982,6 @@ function openSlotDialog(slot: Partial<ShipSlot> = {}): void {
         </label>
         <fieldset>
           <legend>Compatibility</legend>
-          <label class="hd-check">
-            <input type="checkbox" name="requireShipEquipment" ${checkedAttr(data.requireShipEquipment)}>
-            <span>Require HoloDock ship equipment</span>
-          </label>
-          <label class="hd-check">
-            <input type="checkbox" name="allowUntagged" ${checkedAttr(data.allowUntagged)}>
-            <span>Allow untagged items when no category or tag rule is set</span>
-          </label>
           <label>
             <span>Required Ship Equipment Category</span>
             <input type="text" name="requiredCategory" value="${escapeHtml(data.requiredCategory)}" list="hd-slot-categories" placeholder="Optional">
@@ -1761,6 +2139,11 @@ function getShipEquipmentFormData(html: any): ShipEquipmentData {
 function openShipEquipmentDialog(item: any): void {
   if (!requireGM("tag ship equipment")) return;
   if (!item) return;
+  const dialogKey = String(item.uuid ?? item.id ?? item.name ?? "item");
+  const now = Date.now();
+  if (dialogKey === lastEquipmentDialogOpenKey && now - lastEquipmentDialogOpenAt < 500) return;
+  lastEquipmentDialogOpenKey = dialogKey;
+  lastEquipmentDialogOpenAt = now;
   const data = getShipEquipmentData(item);
   const categoryOptions = getCategories()
     .map((category) => `<option value="${escapeHtml(category)}">`)
@@ -2007,7 +2390,7 @@ function openEquipmentBrowser(profileId: string, slotId: string): void {
     default: "close"
   }, {
     classes: ["holodock-window", "hd-dialog"],
-    width: 560,
+    width: 700,
     height: 640
   });
   dialog.render(true);
@@ -2112,6 +2495,7 @@ function addItemSheetHeaderFallback(app: any, html: any = null): void {
   button.innerHTML = '<i class="fa-solid fa-shuttle-space"></i><span class="sr-only">Ship Equipment</span>';
   button.addEventListener("click", (event) => {
     event.preventDefault();
+    event.stopPropagation();
     openShipEquipmentDialog(item);
   });
   const controls = header.querySelector<HTMLElement>(".window-controls, .header-controls, .window-header-buttons, .window-buttons, menu");
@@ -2138,6 +2522,7 @@ function activateItemSheetHeaderAction(app: any, html: any = null): void {
     const target = (event.target as HTMLElement | null)?.closest?.("[data-action='holodockShipEquipment'], .hd-edit-equipment");
     if (!target) return;
     event.preventDefault();
+    event.stopPropagation();
     openShipEquipmentDialog(item);
   });
 }
@@ -2209,6 +2594,7 @@ class HoloDockApp extends LegacyApplication {
         if (action === "create-stat") openStatDialog();
         if (action === "browse-image") this.browseShipImage();
         if (action === "save-power-preset") openPowerPresetDialog();
+        if (action === "profile-permissions" && profile) openPermissionsDialog(profile);
       });
     });
 
@@ -2316,6 +2702,10 @@ class HoloDockApp extends LegacyApplication {
         const slotId = (event.currentTarget as HTMLElement).dataset.hdActivateEquipment ?? "";
         const slot = profile?.slots.find((candidate) => candidate.id === slotId);
         const item = await resolveItem(slot?.itemUuid ?? "");
+        if (!canUserActivate(profile)) {
+          ui.notifications?.warn?.("Players have read-only access to this ship.");
+          return;
+        }
         if (!item || !profile || !slot) {
           ui.notifications?.warn?.("That ship equipment could not be found.");
           return;
@@ -2430,17 +2820,21 @@ class HoloDockApp extends LegacyApplication {
   activateSlotDrops(element: HTMLElement): void {
     element.querySelectorAll("[data-hd-slot-id]").forEach((slotElement) => {
       slotElement.addEventListener("dragover", (event) => {
-        if (!game.user?.isGM) return;
+        const profile = getSelectedProfile();
+        const slotId = (slotElement as HTMLElement).dataset.hdSlotId ?? "";
+        const slot = profile?.slots.find((candidate) => candidate.id === slotId);
+        if (!profile || !canUserEquip(profile) || slot?.itemUuid) return;
         event.preventDefault();
         slotElement.classList.add("is-drop-hover");
       });
       slotElement.addEventListener("dragleave", () => slotElement.classList.remove("is-drop-hover"));
       slotElement.addEventListener("drop", async (event) => {
         slotElement.classList.remove("is-drop-hover");
-        if (!game.user?.isGM) return;
         event.preventDefault();
         const profile = getSelectedProfile();
         const slotId = (slotElement as HTMLElement).dataset.hdSlotId ?? "";
+        const slot = profile?.slots.find((candidate) => candidate.id === slotId);
+        if (!profile || !canUserEquip(profile) || slot?.itemUuid) return;
         const data = getDragData(event as DragEvent);
         const uuid = data.uuid ?? data.documentUuid ?? data.itemUuid ?? "";
         if (!profile || !uuid) {
@@ -2588,6 +2982,18 @@ class HoloDockApp extends LegacyApplication {
     this.drawSlotLinks(element);
   }
 
+  getSlotCardVisibility(element: HTMLElement, card: HTMLElement): number {
+    const rail = element.querySelector<HTMLElement>(".hd-slot-rail");
+    if (!rail) return 1;
+    const railRect = rail.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    if (!cardRect.height || !railRect.height) return 1;
+    const visibleTop = Math.max(cardRect.top, railRect.top);
+    const visibleBottom = Math.min(cardRect.bottom, railRect.bottom);
+    const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+    return Math.min(1, Math.max(0, visibleHeight / cardRect.height));
+  }
+
   drawSlotLinks(element: HTMLElement): void {
     const svg = element.querySelector<SVGSVGElement>("[data-hd-link-lines]");
     const map = element.querySelector<HTMLElement>("[data-hd-ship-map]");
@@ -2611,9 +3017,12 @@ class HoloDockApp extends LegacyApplication {
       const x2 = cardRect.left - stageRect.left;
       const y2 = cardRect.top + cardRect.height / 2 - stageRect.top;
       const control = Math.max(40, Math.abs(x2 - x1) / 2);
+      const visibility = this.getSlotCardVisibility(element, card);
+      const opacity = 0.12 + visibility * 0.83;
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("d", `M ${x1} ${y1} C ${x1 + control} ${y1}, ${x2 - control} ${y2}, ${x2} ${y2}`);
       path.setAttribute("class", `hd-link-line ${pin.dataset.hdAnchorState || ""}`.trim());
+      path.style.opacity = opacity.toFixed(2);
       svg.append(path);
     });
   }
@@ -2688,6 +3097,7 @@ function registerApi(): void {
     getProfile,
     createProfile,
     updateProfileMetadata,
+    updateProfilePermissions,
     deleteProfile,
     capturePowerPreset,
     applyPowerPreset,
@@ -2764,6 +3174,7 @@ Hooks.once("init", async () => {
 
 Hooks.once("ready", () => {
   registerApi();
+  registerSocketHandlers();
   Hooks.on("getApplicationHeaderButtons", addItemSheetHeaderButton);
   Hooks.on("getApplicationV1HeaderButtons", addItemSheetHeaderButton);
   Hooks.on("getDocumentSheetHeaderButtons", addItemSheetHeaderButton);
@@ -2774,6 +3185,8 @@ Hooks.once("ready", () => {
   Hooks.on("renderApplication", activateItemSheetHeaderAction);
   Hooks.on("renderApplicationV1", activateItemSheetHeaderAction);
   Hooks.on("renderApplicationV2", activateItemSheetHeaderAction);
+  Hooks.on("renderChatMessage", activateInstallRequestChatCard);
+  Hooks.on("renderChatMessageHTML", activateInstallRequestChatCard);
   registerWithHoloSuiteWhenReady();
   console.log(`${MODULE_ID} | Ready. API available at game.holodock.`);
 });

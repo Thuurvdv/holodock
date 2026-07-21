@@ -16,6 +16,7 @@
       {{#if canEdit}}
         <button type="button" class="hd-icon-action" data-hd-action="create-profile" title="New ship profile"><i class="fa-solid fa-plus"></i></button>
         {{#if selectedProfile}}
+          <button type="button" class="hd-icon-action" data-hd-action="profile-permissions" title="Player rights"><i class="fa-solid fa-user-shield"></i></button>
           <button type="button" class="hd-icon-action" data-hd-action="delete-profile" title="Delete profile"><i class="fa-solid fa-trash"></i></button>
         {{/if}}
       {{/if}}
@@ -173,7 +174,6 @@
                   <div>
                     <p class="hd-kicker">{{selectedProfile.selectedEquipmentSlot.category}}</p>
                     <h3>{{selectedProfile.selectedEquipmentSlot.item.name}}</h3>
-                    <span>{{selectedProfile.selectedEquipmentSlot.label}}</span>
                   </div>
                 </header>
 
@@ -212,6 +212,7 @@
                 </div>
 
                 <footer class="hd-equipment-actions">
+                  {{#if canActivateSystems}}
                   {{#if selectedProfile.selectedEquipmentSlot.item.equipment.activation.enabled}}
                     <section class="hd-action-group hd-action-primary">
                       <span>Activation</span>
@@ -220,6 +221,7 @@
                         {{selectedProfile.selectedEquipmentSlot.item.equipment.activation.label}}
                       </button>
                     </section>
+                  {{/if}}
                   {{/if}}
                   {{#if canEdit}}
                     {{#if selectedProfile.selectedEquipmentSlot.item.equipment.power.enabled}}
