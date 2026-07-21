@@ -570,9 +570,11 @@ async function createProfile(): Promise<ShipProfile | null> {
     powerCapacity: 0,
     stats: [
       normalizeStat({ id: createId("stat"), label: "Speed", value: "6", note: "" }),
+      normalizeStat({ id: createId("stat"), label: "Cruise Speed", value: "4", note: "Efficient travel" }),
       normalizeStat({ id: createId("stat"), label: "Fuel", value: "100%", note: "" }),
       normalizeStat({ id: createId("stat"), label: "Defense", value: "10", note: "" }),
-      normalizeStat({ id: createId("stat"), label: "Capacity", value: "6", note: "Crew and passengers" })
+      normalizeStat({ id: createId("stat"), label: "Capacity", value: "6", note: "Crew and passengers" }),
+      normalizeStat({ id: createId("stat"), label: "Cargo", value: "2 tons", note: "Available hold" })
     ],
     slots: DEFAULT_CATEGORIES.slice(0, 4).map((category) => normalizeSlot({
       id: createId("slot"),
@@ -1035,12 +1037,13 @@ function prepareShipEquipmentData(equipment: ShipEquipmentData): any {
   const durability = equipment.durability;
   const { isBroken, isDamaged, value, max } = getDurabilityState(equipment);
   const isOffline = equipment.power.enabled && !equipment.power.online;
-  const isUnderpowered = equipment.power.enabled && equipment.power.online && equipment.power.allocated < equipment.power.draw;
+  const isNoPower = equipment.power.enabled && equipment.power.online && equipment.power.draw > 0 && equipment.power.allocated <= 0;
+  const isUnderpowered = equipment.power.enabled && equipment.power.online && !isNoPower && equipment.power.allocated < equipment.power.draw;
   const cooldownMs = Math.max(0, equipment.activation.cooldown) * 6000;
   const cooldownReadyAt = equipment.activation.lastActivatedAt + cooldownMs;
   const isCoolingDown = equipment.activation.enabled && cooldownMs > 0 && equipment.activation.lastActivatedAt > 0 && cooldownReadyAt > Date.now();
   const cooldownRemaining = isCoolingDown ? Math.max(1, Math.ceil((cooldownReadyAt - Date.now()) / 6000)) : 0;
-  const isBlocked = isOffline || isUnderpowered || isCoolingDown || (equipment.activation.blockWhenBroken && isBroken);
+  const isBlocked = isOffline || isNoPower || isUnderpowered || isCoolingDown || (equipment.activation.blockWhenBroken && isBroken);
   return {
     ...equipment,
     badges: getShipEquipmentBadges(equipment),
@@ -1056,10 +1059,11 @@ function prepareShipEquipmentData(equipment: ShipEquipmentData): any {
     },
     power: {
       ...equipment.power,
-      state: equipment.power.online ? (isUnderpowered ? "Underpowered" : "Online") : "Offline",
+      state: equipment.power.online ? (isNoPower ? "No Power" : isUnderpowered ? "Low Power" : "Online") : "Offline",
       allocationText: `${equipment.power.allocated} / ${equipment.power.draw}`,
       allocationPercent: equipment.power.draw > 0 ? Math.min(100, Math.round((equipment.power.allocated / equipment.power.draw) * 100)) : 100,
       isOffline,
+      isNoPower,
       isUnderpowered
     },
     activation: {
@@ -1069,8 +1073,10 @@ function prepareShipEquipmentData(equipment: ShipEquipmentData): any {
       cooldownRemaining,
       blockedReason: isOffline
         ? "Equipment offline"
-        : isUnderpowered
-          ? "Insufficient allocated power"
+        : isNoPower
+          ? "No power allocated"
+          : isUnderpowered
+            ? "Low allocated power"
           : isCoolingDown
             ? `Cooling down: ${cooldownRemaining} round${cooldownRemaining === 1 ? "" : "s"}`
             : isBroken
@@ -1163,18 +1169,72 @@ function findStatsByLabels(stats: ShipStat[], labels: string[]): ShipStat[] {
   return stats.filter((stat) => normalizedLabels.some((label) => stat.label.toLowerCase().includes(label)));
 }
 
+function findStatByLabels(stats: ShipStat[], labels: string[]): ShipStat | null {
+  return findStatsByLabels(stats, labels)[0] ?? null;
+}
+
+function prepareNamedStat(stats: ShipStat[], label: string, labels: string[], fallback = "Unset", editLabel = label): any {
+  const stat = findStatByLabels(stats, labels);
+  return {
+    label,
+    value: stat?.value || fallback,
+    inputValue: stat?.value || "",
+    note: stat?.note || "",
+    stat,
+    statId: stat?.id || "",
+    editLabel: stat?.label || editLabel,
+    isConfigured: Boolean(stat)
+  };
+}
+
 function prepareStatVital(stats: ShipStat[], fallbackLabel: string, page: string, icon: string): any {
   const stat = stats[0] ?? null;
   return {
     label: fallbackLabel,
     value: stat?.value || "Unset",
+    inputValue: stat?.value || "",
     note: stat?.note || (stat ? stat.label : "Add ship statistic"),
     icon,
     page,
     stateClass: stat ? "is-ready" : "is-muted",
     stat,
+    statId: stat?.id || "",
+    editLabel: stat?.label || fallbackLabel,
     relatedStats: stats.slice(1),
     hasRelatedStats: stats.length > 1
+  };
+}
+
+function prepareSpeedProfile(stats: ShipStat[]): any {
+  const speedStat = findStatByLabels(stats, ["speed"]);
+  const relatedSpeedStats = findStatsByLabels(stats, ["max speed", "maximum speed", "top speed", "maximum"])
+    .filter((stat) => stat.id !== speedStat?.id);
+  const speedStats = [speedStat, ...relatedSpeedStats].filter(Boolean) as ShipStat[];
+  const vital = prepareStatVital(speedStats, "Speed", "speed", "fa-gauge-high");
+  return {
+    ...vital,
+    metrics: [
+      prepareNamedStat(stats, "Cruise", ["cruise"], "Unset", "Cruise Speed"),
+      prepareNamedStat(stats, "Maximum", ["max speed", "maximum speed", "top speed", "maximum"], "Unset", "Maximum Speed"),
+      prepareNamedStat(stats, "Thrust", ["thrust", "acceleration"])
+    ]
+  };
+}
+
+function prepareCapacityProfile(stats: ShipStat[]): any {
+  const capacityStat = findStatByLabels(stats, ["capacity", "occupancy"]);
+  const relatedCapacityStats = findStatsByLabels(stats, ["passenger"])
+    .filter((stat) => stat.id !== capacityStat?.id);
+  const capacityStats = [capacityStat, ...relatedCapacityStats].filter(Boolean) as ShipStat[];
+  const vital = prepareStatVital(capacityStats, "Capacity", "capacity", "fa-users");
+  return {
+    ...vital,
+    metrics: [
+      prepareNamedStat(stats, "Crew", ["crew"]),
+      prepareNamedStat(stats, "Berths", ["berth"]),
+      prepareNamedStat(stats, "Cargo", ["cargo", "hold"]),
+      prepareNamedStat(stats, "Life Support", ["life support", "life-support"])
+    ]
   };
 }
 
@@ -1232,9 +1292,11 @@ function getShipDashboard(profile: { slots: any[]; power: ShipPowerBudget; stats
       const isBroken = durability.enabled && durability.isBroken;
       const isDamaged = durability.enabled && durability.isDamaged;
       const isOffline = power.enabled && power.isOffline;
+      const isNoPower = power.enabled && power.isNoPower;
       const isUnderpowered = power.enabled && power.isUnderpowered;
       const canActivate = equipment.activation.enabled;
-      const state = isBroken ? "Broken" : isOffline ? "Offline" : isUnderpowered ? "Underpowered" : isDamaged ? "Damaged" : "Ready";
+      const state = isBroken ? "Broken" : isOffline ? "Offline" : isNoPower ? "No Power" : isUnderpowered ? "Low Power" : isDamaged ? "Damaged" : "Ready";
+      const stateClass = `is-${state.toLowerCase().replace(/\s+/g, "-")}`;
       return {
         slotId: slot.id,
         slotLabel: slot.label,
@@ -1242,8 +1304,8 @@ function getShipDashboard(profile: { slots: any[]; power: ShipPowerBudget; stats
         itemImg: slot.item.img,
         category: equipment.category,
         state,
-        stateClass: `is-${state.toLowerCase()}`,
-        icon: isBroken ? "fa-triangle-exclamation" : isOffline ? "fa-power-off" : isUnderpowered ? "fa-gauge-simple-low" : isDamaged ? "fa-screwdriver-wrench" : "fa-circle-check",
+        stateClass,
+        icon: isBroken ? "fa-triangle-exclamation" : isOffline ? "fa-power-off" : isNoPower ? "fa-battery-empty" : isUnderpowered ? "fa-gauge-simple-low" : isDamaged ? "fa-screwdriver-wrench" : "fa-circle-check",
         canActivate,
         activationLabel: equipment.activation.label,
         activationBlocked: equipment.activation.isBlocked,
@@ -1260,11 +1322,11 @@ function getShipDashboard(profile: { slots: any[]; power: ShipPowerBudget; stats
   const brokenSystems = systems.filter((system) => system.state === "Broken").length;
   const damagedSystems = systems.filter((system) => system.state === "Damaged").length;
   const offlineSystems = systems.filter((system) => system.state === "Offline").length;
-  const underpoweredSystems = systems.filter((system) => system.state === "Underpowered").length;
+  const underpoweredSystems = systems.filter((system) => system.state === "Low Power" || system.state === "No Power").length;
   const poweredSystems = systems.filter((system) => system.powerEnabled).length;
   const onlineSystems = systems.filter((system) => system.powerEnabled && system.powerState === "Online").length;
-  const speed = prepareStatVital(findStatsByLabels(profile.stats, ["speed", "maneuver", "thrust", "acceleration"]), "Speed", "speed", "fa-gauge-high");
-  const capacity = prepareStatVital(findStatsByLabels(profile.stats, ["crew", "passenger", "capacity", "occupancy", "berth", "cargo"]), "Capacity", "capacity", "fa-users");
+  const speed = prepareSpeedProfile(profile.stats);
+  const capacity = prepareCapacityProfile(profile.stats);
   const condition = getShipCondition({ power: profile.power, systems, brokenSystems, damagedSystems, offlineSystems, underpoweredSystems });
   return {
     totalSlots,
@@ -1339,6 +1401,7 @@ function preparePowerGrid(slots: any[], power: ShipPowerBudget): any {
         allocationPercent: powerData.allocationPercent,
         state: powerData.state,
         isOffline: powerData.isOffline,
+        isNoPower: powerData.isNoPower,
         isUnderpowered: powerData.isUnderpowered
       };
     });
@@ -1379,13 +1442,15 @@ async function prepareSlotForRender(slot: ShipSlot): Promise<any> {
     ? "is-broken"
     : preparedEquipment.power.isOffline
       ? "is-offline"
-      : preparedEquipment.power.isUnderpowered
-        ? "is-underpowered"
-        : preparedEquipment.durability.isDamaged
-          ? "is-damaged"
-          : preparedEquipment.enabled
-            ? "is-ready"
-            : "is-untagged";
+      : preparedEquipment.power.isNoPower
+        ? "is-no-power"
+        : preparedEquipment.power.isUnderpowered
+          ? "is-low-power"
+          : preparedEquipment.durability.isDamaged
+            ? "is-damaged"
+            : preparedEquipment.enabled
+              ? "is-online"
+              : "is-untagged";
   return {
     ...preparedSlot,
       item: {
@@ -1396,7 +1461,9 @@ async function prepareSlotForRender(slot: ShipSlot): Promise<any> {
         uuid: item.uuid,
         equipment: preparedEquipment
       },
-      pinStateClass: pinState
+      pinStateClass: pinState,
+      statusClass: pinState,
+      statusLabel: preparedEquipment.durability.isBroken ? "Broken" : preparedEquipment.power.state || preparedEquipment.durability.state
   };
 }
 
@@ -1411,7 +1478,9 @@ async function getRenderContext(): Promise<any> {
       dashboard.speed.stat?.id,
       dashboard.capacity.stat?.id,
       ...dashboard.speed.relatedStats.map((stat: ShipStat) => stat.id),
-      ...dashboard.capacity.relatedStats.map((stat: ShipStat) => stat.id)
+      ...dashboard.capacity.relatedStats.map((stat: ShipStat) => stat.id),
+      ...dashboard.speed.metrics.map((metric: any) => metric.stat?.id),
+      ...dashboard.capacity.metrics.map((metric: any) => metric.stat?.id)
     ].filter(Boolean));
     dashboard.tiles = dashboard.tiles.map((tile: any) => ({
       ...tile,
@@ -2085,8 +2154,8 @@ class HoloDockApp extends LegacyApplication {
       template: TEMPLATE_PATH,
       popOut: true,
       resizable: true,
-      width: 920,
-      height: 760
+      width: 1280,
+      height: 820
     });
   }
 
@@ -2165,6 +2234,38 @@ class HoloDockApp extends LegacyApplication {
         const stat = profile?.stats.find((candidate) => candidate.id === (event.currentTarget as HTMLElement).dataset.hdEditStat);
         if (stat) openStatDialog(stat);
       });
+    });
+
+    element.querySelectorAll("[data-hd-add-stat-label]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        const label = (event.currentTarget as HTMLElement).dataset.hdAddStatLabel ?? "New Statistic";
+        openStatDialog({ label, value: "", note: "" });
+      });
+    });
+
+    element.querySelectorAll("[data-hd-stat-value]").forEach((input) => {
+      const saveStatValue = async (event: Event) => {
+        const profile = getSelectedProfile();
+        const target = event.currentTarget as HTMLInputElement;
+        if (target.dataset.hdSavingValue === "true") return;
+        if (!profile) return;
+        if (!target.dataset.hdStatValue && target.value.trim() === "") return;
+        target.dataset.hdSavingValue = "true";
+        try {
+          const rawNote = target.dataset.hdStatNote || "";
+          const stat = await upsertStat(profile.id, {
+            id: target.dataset.hdStatValue || undefined,
+            label: target.dataset.hdStatLabel || "Ship Statistic",
+            value: target.value,
+            note: rawNote === "Not configured" || rawNote === "Add ship statistic" ? "" : rawNote
+          });
+          if (stat?.id) target.dataset.hdStatValue = stat.id;
+        } finally {
+          delete target.dataset.hdSavingValue;
+        }
+      };
+      input.addEventListener("change", saveStatValue);
+      input.addEventListener("blur", saveStatValue);
     });
 
     element.querySelectorAll("[data-hd-delete-stat]").forEach((button) => {
@@ -2512,7 +2613,7 @@ class HoloDockApp extends LegacyApplication {
       const control = Math.max(40, Math.abs(x2 - x1) / 2);
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("d", `M ${x1} ${y1} C ${x1 + control} ${y1}, ${x2 - control} ${y2}, ${x2} ${y2}`);
-      path.setAttribute("class", "hd-link-line");
+      path.setAttribute("class", `hd-link-line ${pin.dataset.hdAnchorState || ""}`.trim());
       svg.append(path);
     });
   }

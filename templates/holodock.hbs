@@ -131,7 +131,7 @@
                 <img src="{{selectedProfile.image}}" alt="{{selectedProfile.name}}" onerror="this.src='modules/holodock/assets/SpaceshipDefault.webp'">
                 {{#each selectedProfile.slots as |slot|}}
                   {{#if slot.hasAnchor}}
-                    <button type="button" class="hd-anchor-pin {{slot.pinStateClass}} {{#if slot.isSelectedEquipment}}is-selected{{/if}}" data-hd-anchor-slot="{{slot.id}}" data-hd-anchor-x="{{slot.anchorX}}" data-hd-anchor-y="{{slot.anchorY}}" title="{{slot.label}}">
+                    <button type="button" class="hd-anchor-pin {{slot.pinStateClass}} {{#if slot.isSelectedEquipment}}is-selected{{/if}}" data-hd-anchor-slot="{{slot.id}}" data-hd-anchor-state="{{slot.pinStateClass}}" data-hd-anchor-x="{{slot.anchorX}}" data-hd-anchor-y="{{slot.anchorY}}" title="{{slot.label}}">
                       <span class="sr-only">{{slot.label}}</span>
                     </button>
                   {{/if}}
@@ -318,7 +318,7 @@
             {{#if selectedProfile.powerGrid.hasNodes}}
               <div class="hd-power-grid">
                 {{#each selectedProfile.powerGrid.nodes as |node|}}
-                  <article class="hd-power-node {{#if node.isOffline}}is-offline{{/if}} {{#if node.isUnderpowered}}is-underpowered{{/if}}">
+                  <article class="hd-power-node {{#if node.isOffline}}is-offline{{/if}} {{#if node.isNoPower}}is-no-power{{/if}} {{#if node.isUnderpowered}}is-low-power{{/if}}">
                     <span>{{node.category}}</span>
                     <strong>{{node.itemName}}</strong>
                     <small>{{node.allocationText}} | {{node.state}}</small>
@@ -364,28 +364,27 @@
             <article class="hd-stat-detail">
               <i class="fa-solid fa-gauge-high"></i>
               <p class="hd-kicker">Speed</p>
-              <strong>{{selectedProfile.dashboard.speed.value}}</strong>
-              <small>{{selectedProfile.dashboard.speed.note}}</small>
-              {{#if selectedProfile.dashboard.speed.hasRelatedStats}}
-                <div class="hd-stat-detail-grid">
-                  {{#each selectedProfile.dashboard.speed.relatedStats as |stat|}}
-                    <section>
-                      <span>{{stat.label}}</span>
-                      <strong>{{stat.value}}</strong>
-                      {{#if stat.note}}<small>{{stat.note}}</small>{{/if}}
-                    </section>
-                  {{/each}}
-                </div>
-              {{else}}
-                <p class="hd-muted">Add maneuver, thrust, or acceleration stats to expand this readout.</p>
-              {{/if}}
-              {{#if canEdit}}
-                {{#if selectedProfile.dashboard.speed.stat}}
-                  <button type="button" data-hd-edit-stat="{{selectedProfile.dashboard.speed.stat.id}}"><i class="fa-solid fa-pen-to-square"></i> Edit Speed</button>
+              <section class="hd-stat-primary-field {{#unless selectedProfile.dashboard.speed.stat}}is-empty{{/unless}}">
+                <span>Speed</span>
+                {{#if canEdit}}
+                  <input type="text" value="{{selectedProfile.dashboard.speed.inputValue}}" placeholder="{{selectedProfile.dashboard.speed.value}}" data-hd-stat-value="{{selectedProfile.dashboard.speed.statId}}" data-hd-stat-label="{{selectedProfile.dashboard.speed.editLabel}}" data-hd-stat-note="{{selectedProfile.dashboard.speed.note}}" title="Speed">
                 {{else}}
-                  <button type="button" data-hd-action="create-stat"><i class="fa-solid fa-plus"></i> Add Speed</button>
+                  <strong>{{selectedProfile.dashboard.speed.value}}</strong>
                 {{/if}}
-              {{/if}}
+              </section>
+              <div class="hd-stat-detail-grid">
+                {{#each selectedProfile.dashboard.speed.metrics as |metric|}}
+                  <section class="{{#unless metric.isConfigured}}is-empty{{/unless}}">
+                    <span>{{metric.label}}</span>
+                    {{#if ../canEdit}}
+                      <input type="text" value="{{metric.inputValue}}" placeholder="{{metric.value}}" data-hd-stat-value="{{metric.statId}}" data-hd-stat-label="{{metric.editLabel}}" data-hd-stat-note="{{metric.note}}" title="{{metric.label}}">
+                    {{else}}
+                      <strong>{{metric.value}}</strong>
+                    {{/if}}
+                  </section>
+                {{/each}}
+              </div>
+              <p class="hd-muted">Track cruise speed, maximum speed, and thrust.</p>
             </article>
           </section>
         {{/if}}
@@ -395,28 +394,27 @@
             <article class="hd-stat-detail">
               <i class="fa-solid fa-users"></i>
               <p class="hd-kicker">Capacity</p>
-              <strong>{{selectedProfile.dashboard.capacity.value}}</strong>
-              <small>{{selectedProfile.dashboard.capacity.note}}</small>
-              {{#if selectedProfile.dashboard.capacity.hasRelatedStats}}
-                <div class="hd-stat-detail-grid">
-                  {{#each selectedProfile.dashboard.capacity.relatedStats as |stat|}}
-                    <section>
-                      <span>{{stat.label}}</span>
-                      <strong>{{stat.value}}</strong>
-                      {{#if stat.note}}<small>{{stat.note}}</small>{{/if}}
-                    </section>
-                  {{/each}}
-                </div>
-              {{else}}
-                <p class="hd-muted">Add crew, passenger, berth, or cargo stats to expand this readout.</p>
-              {{/if}}
-              {{#if canEdit}}
-                {{#if selectedProfile.dashboard.capacity.stat}}
-                  <button type="button" data-hd-edit-stat="{{selectedProfile.dashboard.capacity.stat.id}}"><i class="fa-solid fa-pen-to-square"></i> Edit Capacity</button>
+              <section class="hd-stat-primary-field {{#unless selectedProfile.dashboard.capacity.stat}}is-empty{{/unless}}">
+                <span>Capacity</span>
+                {{#if canEdit}}
+                  <input type="text" value="{{selectedProfile.dashboard.capacity.inputValue}}" placeholder="{{selectedProfile.dashboard.capacity.value}}" data-hd-stat-value="{{selectedProfile.dashboard.capacity.statId}}" data-hd-stat-label="{{selectedProfile.dashboard.capacity.editLabel}}" data-hd-stat-note="{{selectedProfile.dashboard.capacity.note}}" title="Capacity">
                 {{else}}
-                  <button type="button" data-hd-action="create-stat"><i class="fa-solid fa-plus"></i> Add Capacity</button>
+                  <strong>{{selectedProfile.dashboard.capacity.value}}</strong>
                 {{/if}}
-              {{/if}}
+              </section>
+              <div class="hd-stat-detail-grid">
+                {{#each selectedProfile.dashboard.capacity.metrics as |metric|}}
+                  <section class="{{#unless metric.isConfigured}}is-empty{{/unless}}">
+                    <span>{{metric.label}}</span>
+                    {{#if ../canEdit}}
+                      <input type="text" value="{{metric.inputValue}}" placeholder="{{metric.value}}" data-hd-stat-value="{{metric.statId}}" data-hd-stat-label="{{metric.editLabel}}" data-hd-stat-note="{{metric.note}}" title="{{metric.label}}">
+                    {{else}}
+                      <strong>{{metric.value}}</strong>
+                    {{/if}}
+                  </section>
+                {{/each}}
+              </div>
+              <p class="hd-muted">Track crew, berths, cargo capacity, and life support.</p>
             </article>
           </section>
         {{/if}}
@@ -443,7 +441,7 @@
               </summary>
               <div>
                 {{#each group.slots as |slot|}}
-                  <article class="hd-equipment-entry {{#if slot.isSelectedEquipment}}is-selected{{/if}} {{#if slot.item}}is-filled{{else}}is-empty{{/if}}" data-hd-slot-id="{{slot.id}}" data-hd-slot-card="{{slot.id}}">
+                  <article class="hd-equipment-entry {{slot.statusClass}} {{#if slot.isSelectedEquipment}}is-selected{{/if}} {{#if slot.item}}is-filled{{else}}is-empty{{/if}}" data-hd-slot-id="{{slot.id}}" data-hd-slot-card="{{slot.id}}" title="{{slot.statusLabel}}">
                     <button type="button" data-hd-select-equipment="{{slot.id}}">
                       {{#if slot.item}}
                         <img src="{{slot.item.img}}" alt="">
