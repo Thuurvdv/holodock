@@ -93,7 +93,7 @@ function qt() {
   const n = e == null ? void 0 : e.ApplicationV2;
   return n ? kt(n) : null;
 }
-const S = "holodock", Ne = "HoloDock", ve = "profiles", Se = "slotCategories", ke = "defaultProfile", fe = "shipEquipment", Ue = `modules/${S}/templates/holodock.hbs`, ae = "modules/holodock/assets/SpaceshipDefault.webp", At = "icons/svg/space-station.svg", G = ["Weapons", "Defense", "Utility", "Engines", "Cargo", "Special"];
+const v = "holodock", Ne = "HoloDock", ve = "profiles", Se = "slotCategories", ke = "defaultProfile", fe = "shipEquipment", Ue = `modules/${v}/templates/holodock.hbs`, ae = "modules/holodock/assets/SpaceshipDefault.webp", At = "icons/svg/space-station.svg", G = ["Weapons", "Defense", "Utility", "Engines", "Cargo", "Special"];
 function I(e) {
   var t, i;
   return (t = foundry == null ? void 0 : foundry.utils) != null && t.deepClone ? foundry.utils.deepClone(e) : (i = foundry == null ? void 0 : foundry.utils) != null && i.duplicate ? foundry.utils.duplicate(e) : JSON.parse(JSON.stringify(e ?? {}));
@@ -115,7 +115,7 @@ function q(e = "edit HoloDock") {
 }
 const $t = qt();
 let B = null, J = null, L = "", $ = "overview", O = "", Le = "", Oe = 0;
-const ce = /* @__PURE__ */ new Map(), je = `module.${S}`, me = [
+const ce = /* @__PURE__ */ new Map(), je = `module.${v}`, me = [
   { id: "overview", label: "Overview", icon: "fa-solid fa-display" },
   { id: "systems", label: "Systems", icon: "fa-solid fa-microchip" },
   { id: "power", label: "Power Grid", icon: "fa-solid fa-bolt" },
@@ -148,7 +148,7 @@ function R(e = {}) {
 function Ge(e = {}) {
   return {
     slotId: String(e.slotId || "").trim(),
-    allocated: Math.max(0, v(e.allocated, 0)),
+    allocated: Math.max(0, S(e.allocated, 0)),
     online: e.online !== !1
   };
 }
@@ -173,14 +173,14 @@ function H(e = {}) {
     name: String(e.name || "Party Ship").trim() || "Party Ship",
     shipClass: String(e.shipClass || "").trim(),
     image: t === At ? ae : t,
-    powerCapacity: Math.max(0, v(e.powerCapacity, 0)),
+    powerCapacity: Math.max(0, S(e.powerCapacity, 0)),
     permissions: _e(e.permissions),
     powerPresets: Array.isArray(e.powerPresets) ? e.powerPresets.map(Ve) : [],
     stats: Array.isArray(e.stats) ? e.stats.map(R) : [],
     slots: Array.isArray(e.slots) ? e.slots.map(N) : []
   };
 }
-function v(e, t = 0) {
+function S(e, t = 0) {
   const i = Number(e);
   return Number.isFinite(i) ? i : t;
 }
@@ -189,7 +189,7 @@ function ze(e) {
 }
 function se(e = {}) {
   var o, s, r, l, c, d, p, u, m, f, w, h, y, k, C, E, U;
-  const t = Math.max(0, v((o = e.durability) == null ? void 0 : o.max, 0)), i = Math.min(t, Math.max(0, v((s = e.durability) == null ? void 0 : s.value, t))), n = String(e.category || G[0]).trim() || G[0], a = {
+  const t = Math.max(0, S((o = e.durability) == null ? void 0 : o.max, 0)), i = Math.min(t, Math.max(0, S((s = e.durability) == null ? void 0 : s.value, t))), n = String(e.category || G[0]).trim() || G[0], a = {
     enabled: e.enabled === !0,
     category: n,
     tags: ze(e.tags),
@@ -197,22 +197,22 @@ function se(e = {}) {
       enabled: ((r = e.activation) == null ? void 0 : r.enabled) === !0,
       label: String(((l = e.activation) == null ? void 0 : l.label) || "Activate").trim() || "Activate",
       actionType: String(((c = e.activation) == null ? void 0 : c.actionType) || "").trim(),
-      cooldown: Math.max(0, v((d = e.activation) == null ? void 0 : d.cooldown, 0)),
+      cooldown: Math.max(0, S((d = e.activation) == null ? void 0 : d.cooldown, 0)),
       resourceCost: String(((p = e.activation) == null ? void 0 : p.resourceCost) || "").trim(),
-      durabilityCost: Math.max(0, v((u = e.activation) == null ? void 0 : u.durabilityCost, 0)),
+      durabilityCost: Math.max(0, S((u = e.activation) == null ? void 0 : u.durabilityCost, 0)),
       blockWhenBroken: ((m = e.activation) == null ? void 0 : m.blockWhenBroken) !== !1,
-      lastActivatedAt: Math.max(0, v((f = e.activation) == null ? void 0 : f.lastActivatedAt, 0))
+      lastActivatedAt: Math.max(0, S((f = e.activation) == null ? void 0 : f.lastActivatedAt, 0))
     },
     durability: {
       enabled: ((w = e.durability) == null ? void 0 : w.enabled) === !0,
       value: i,
       max: t,
-      brokenAt: Math.max(0, v((h = e.durability) == null ? void 0 : h.brokenAt, 0))
+      brokenAt: Math.max(0, S((h = e.durability) == null ? void 0 : h.brokenAt, 0))
     },
     power: {
       enabled: ((y = e.power) == null ? void 0 : y.enabled) === !0,
-      draw: Math.max(0, v((k = e.power) == null ? void 0 : k.draw, 0)),
-      allocated: Math.max(0, v((C = e.power) == null ? void 0 : C.allocated, ((E = e.power) == null ? void 0 : E.draw) ?? 0)),
+      draw: Math.max(0, S((k = e.power) == null ? void 0 : k.draw, 0)),
+      allocated: Math.max(0, S((C = e.power) == null ? void 0 : C.allocated, ((E = e.power) == null ? void 0 : E.draw) ?? 0)),
       online: ((U = e.power) == null ? void 0 : U.online) !== !1
     }
   };
@@ -224,7 +224,7 @@ function Et(e) {
 }
 function A(e) {
   var t;
-  return se(((t = e == null ? void 0 : e.getFlag) == null ? void 0 : t.call(e, S, fe)) ?? {});
+  return se(((t = e == null ? void 0 : e.getFlag) == null ? void 0 : t.call(e, v, fe)) ?? {});
 }
 function Ct(e) {
   return A(e).enabled;
@@ -249,10 +249,10 @@ async function V(e, t, i = {}) {
       ...t.power
     }
   });
-  return a.enabled ? (await e.setFlag(S, fe, a), await ge(a.category), j(), a) : (await ((o = e.unsetFlag) == null ? void 0 : o.call(e, S, fe)), j(), a);
+  return a.enabled ? (await e.setFlag(v, fe, a), await ge(a.category), j(), a) : (await ((o = e.unsetFlag) == null ? void 0 : o.call(e, v, fe)), j(), a);
 }
 async function oe(e, t, i = {}) {
-  const n = A(e), a = Math.max(0, n.durability.max), o = Math.min(a, Math.max(0, v(t, n.durability.value)));
+  const n = A(e), a = Math.max(0, n.durability.max), o = Math.min(a, Math.max(0, S(t, n.durability.value)));
   return V(e, {
     enabled: n.enabled,
     durability: {
@@ -277,7 +277,7 @@ async function he(e, t) {
     enabled: i.enabled,
     power: {
       ...i.power,
-      allocated: Math.max(0, v(t, i.power.allocated))
+      allocated: Math.max(0, S(t, i.power.allocated))
     }
   });
 }
@@ -294,7 +294,7 @@ async function Ae(e, t = {}) {
   try {
     n = ((c = i.getSpeaker) == null ? void 0 : c.call(i, { actor: ((r = game.user) == null ? void 0 : r.character) ?? void 0, alias: (l = game.user) == null ? void 0 : l.name })) ?? n;
   } catch (m) {
-    console.debug(`${S} | Could not resolve chat speaker, using fallback.`, m);
+    console.debug(`${v} | Could not resolve chat speaker, using fallback.`, m);
   }
   try {
     return await i.create({
@@ -304,7 +304,7 @@ async function Ae(e, t = {}) {
       flags: t
     });
   } catch (m) {
-    return console.warn(`${S} | Failed to create HoloDock chat card.`, m), (u = (p = ui.notifications) == null ? void 0 : p.warn) == null || u.call(p, "HoloDock could not create a chat card. Check the console for details."), null;
+    return console.warn(`${v} | Failed to create HoloDock chat card.`, m), (u = (p = ui.notifications) == null ? void 0 : p.warn) == null || u.call(p, "HoloDock could not create a chat card. Check the console for details."), null;
   }
 }
 async function Y(e, t, i = {}) {
@@ -384,7 +384,7 @@ async function We(e, t = {}) {
     consequences: [],
     ...t
   };
-  if (Hooks.callAll(`${S}.activateEquipment`, s), s.blocked) {
+  if (Hooks.callAll(`${v}.activateEquipment`, s), s.blocked) {
     const u = {
       ok: !1,
       handled: s.handled === !0,
@@ -423,10 +423,10 @@ async function We(e, t = {}) {
     message: String(s.message || (d ? "Ship equipment activated." : "No system handled this ship equipment activation.")),
     consequences: r
   };
-  return Hooks.callAll(`${S}.equipmentActivated`, { item: e, equipment: A(e), result: p, ...t }), await Y(e, p, t), p;
+  return Hooks.callAll(`${v}.equipmentActivated`, { item: e, equipment: A(e), result: p, ...t }), await Y(e, p, t), p;
 }
 function D() {
-  const e = game.settings.get(S, ve);
+  const e = game.settings.get(v, ve);
   if (!e || typeof e != "object" || Array.isArray(e)) return {};
   const t = {};
   for (const i of Object.values(e)) {
@@ -444,16 +444,16 @@ function Ke() {
   return (t = game.user) != null && t.isGM ? e : e.filter((i) => !i.permissions.hiddenFromPlayers);
 }
 function Je() {
-  return String(game.settings.get(S, ke) || "");
+  return String(game.settings.get(v, ke) || "");
 }
 async function $e(e) {
-  await game.settings.set(S, ke, e);
+  await game.settings.set(v, ke, e);
 }
 async function M(e, t = {}) {
-  t.requireGm !== !1 && !q("save ship loadouts") || (await game.settings.set(S, ve, e), j());
+  t.requireGm !== !1 && !q("save ship loadouts") || (await game.settings.set(v, ve, e), j());
 }
 function ee() {
-  const e = game.settings.get(S, Se), t = Array.isArray(e) ? e.map((i) => String(i).trim()).filter(Boolean) : [];
+  const e = game.settings.get(v, Se), t = Array.isArray(e) ? e.map((i) => String(i).trim()).filter(Boolean) : [];
   return t.length ? [...new Set(t)] : G;
 }
 async function ge(e) {
@@ -461,7 +461,7 @@ async function ge(e) {
   const t = String(e || "").trim();
   if (!t || !((n = game.user) != null && n.isGM)) return;
   const i = ee();
-  i.some((a) => a.toLowerCase() === t.toLowerCase()) || await game.settings.set(S, Se, [...i, t]);
+  i.some((a) => a.toLowerCase() === t.toLowerCase()) || await game.settings.set(v, Se, [...i, t]);
 }
 function b() {
   const e = Ke();
@@ -838,7 +838,7 @@ async function Ht(e, t, i) {
       </article>
     `,
     {
-      [S]: {
+      [v]: {
         installRequest: {
           requestId: n,
           userId: (u = game.user) == null ? void 0 : u.id,
@@ -901,7 +901,7 @@ function Ft(e, t = null) {
 }
 async function Bt(e, t) {
   var a;
-  const i = ((a = e == null ? void 0 : e.getFlag) == null ? void 0 : a.call(e, S, "installRequest")) ?? {}, n = {
+  const i = ((a = e == null ? void 0 : e.getFlag) == null ? void 0 : a.call(e, v, "installRequest")) ?? {}, n = {
     requestId: String(i.requestId || t.dataset.hdInstallRequest || ""),
     userId: String(i.userId || t.dataset.hdUserId || ""),
     profileId: String(i.profileId || t.dataset.hdProfileId || ""),
@@ -913,8 +913,8 @@ async function Bt(e, t) {
 }
 async function He(e, t, i) {
   var r, l, c;
-  const n = ((r = e == null ? void 0 : e.getFlag) == null ? void 0 : r.call(e, S, "installRequest")) ?? {};
-  await ((l = e == null ? void 0 : e.setFlag) == null ? void 0 : l.call(e, S, "installRequest", { ...n, status: t, resultMessage: i }));
+  const n = ((r = e == null ? void 0 : e.getFlag) == null ? void 0 : r.call(e, v, "installRequest")) ?? {};
+  await ((l = e == null ? void 0 : e.setFlag) == null ? void 0 : l.call(e, v, "installRequest", { ...n, status: t, resultMessage: i }));
   const a = String((e == null ? void 0 : e.content) || ""), o = `<p class="hd-install-request-status ${t === "approved" ? "is-approved" : "is-rejected"}">${g(i)}</p>`, s = a.replace(/<footer class="hd-chat-actions">[\s\S]*?<\/footer>/, o);
   s !== a && await ((c = e == null ? void 0 : e.update) == null ? void 0 : c.call(e, { content: s }));
 }
@@ -978,7 +978,7 @@ async function P(e) {
       const r = await i(t);
       return (r == null ? void 0 : r.documentName) === "Item" || ((s = r == null ? void 0 : r.constructor) == null ? void 0 : s.name) === "Item" ? r : null;
     } catch (r) {
-      return console.warn(`${S} | Failed to resolve item UUID "${t}".`, r), null;
+      return console.warn(`${v} | Failed to resolve item UUID "${t}".`, r), null;
     }
   })();
   ce.set(t, a);
@@ -1047,10 +1047,10 @@ function Gt(e) {
   };
 }
 function ut(e) {
-  const t = Math.max(0, v(e.powerCapacity, 0)), i = e.slots.reduce((r, l) => {
+  const t = Math.max(0, S(e.powerCapacity, 0)), i = e.slots.reduce((r, l) => {
     var d, p;
     const c = (p = (d = l == null ? void 0 : l.item) == null ? void 0 : d.equipment) == null ? void 0 : p.power;
-    return !(c != null && c.enabled) || c.online === !1 ? r : r + Math.max(0, v(c.allocated, c.draw ?? 0));
+    return !(c != null && c.enabled) || c.online === !1 ? r : r + Math.max(0, S(c.allocated, c.draw ?? 0));
   }, 0), n = t > 0 ? t - i : 0, a = t > 0 ? Math.max(0, i - t) : 0, o = t > 0, s = o && i > t;
   return {
     capacity: t,
@@ -1623,21 +1623,21 @@ function ai(e) {
       enabled: F(n, "activation.enabled"),
       label: String(n.get("activation.label") || ""),
       actionType: String(n.get("activation.actionType") || ""),
-      cooldown: v(n.get("activation.cooldown"), 0),
+      cooldown: S(n.get("activation.cooldown"), 0),
       resourceCost: String(n.get("activation.resourceCost") || ""),
-      durabilityCost: v(n.get("activation.durabilityCost"), 0),
+      durabilityCost: S(n.get("activation.durabilityCost"), 0),
       blockWhenBroken: F(n, "activation.blockWhenBroken")
     },
     durability: {
       enabled: F(n, "durability.enabled"),
-      value: v(n.get("durability.value"), 0),
-      max: v(n.get("durability.max"), 0),
-      brokenAt: v(n.get("durability.brokenAt"), 0)
+      value: S(n.get("durability.value"), 0),
+      max: S(n.get("durability.max"), 0),
+      brokenAt: S(n.get("durability.brokenAt"), 0)
     },
     power: {
       enabled: F(n, "power.enabled"),
-      draw: v(n.get("power.draw"), 0),
-      allocated: v(n.get("power.allocated"), v(n.get("power.draw"), 0)),
+      draw: S(n.get("power.draw"), 0),
+      allocated: S(n.get("power.allocated"), S(n.get("power.draw"), 0)),
       online: F(n, "power.online")
     }
   });
@@ -1779,7 +1779,7 @@ function oi(e) {
         label: "Save",
         callback: (i) => {
           const n = xe(i);
-          return oe(e, v(n.value, t.durability.value));
+          return oe(e, S(n.value, t.durability.value));
         }
       },
       cancel: {
@@ -2109,7 +2109,7 @@ class pi extends $t {
           const x = await We(p, { profile: l, slot: d });
           x.blocked || !x.ok ? (y = (h = ui.notifications) == null ? void 0 : h.warn) == null || y.call(h, x.message) : x.handled ? x.message && ((U = (E = ui.notifications) == null ? void 0 : E.info) == null || U.call(E, x.message)) : (C = (k = ui.notifications) == null ? void 0 : k.info) == null || C.call(k, x.message);
         } catch (x) {
-          console.warn(`${S} | Failed to activate ship equipment.`, x), (te = (z = ui.notifications) == null ? void 0 : z.warn) == null || te.call(z, "HoloDock could not activate that equipment. Check the console for details.");
+          console.warn(`${v} | Failed to activate ship equipment.`, x), (te = (z = ui.notifications) == null ? void 0 : z.warn) == null || te.call(z, "HoloDock could not activate that equipment. Check the console for details.");
         }
       });
     }), n.querySelectorAll("[data-hd-durability-adjust]").forEach((s) => {
@@ -2121,7 +2121,7 @@ class pi extends $t {
           return;
         }
         const u = A(p);
-        !u.enabled || !u.durability.enabled || await oe(p, u.durability.value + v(c.dataset.hdDurabilityDelta, 0));
+        !u.enabled || !u.durability.enabled || await oe(p, u.durability.value + S(c.dataset.hdDurabilityDelta, 0));
       });
     }), n.querySelectorAll("[data-hd-durability-set]").forEach((s) => {
       s.addEventListener("click", async (r) => {
@@ -2137,7 +2137,7 @@ class pi extends $t {
           (m = (u = ui.notifications) == null ? void 0 : u.warn) == null || m.call(u, "That ship equipment could not be found.");
           return;
         }
-        await oe(p, v(c.value, 0));
+        await oe(p, S(c.value, 0));
       });
     }), n.querySelectorAll("[data-hd-power-toggle]").forEach((s) => {
       s.addEventListener("click", async (r) => {
@@ -2159,7 +2159,7 @@ class pi extends $t {
           return;
         }
         const u = A(p);
-        !u.enabled || !u.power.enabled || await he(p, u.power.allocated + v(c.dataset.hdPowerDelta, 0));
+        !u.enabled || !u.power.enabled || await he(p, u.power.allocated + S(c.dataset.hdPowerDelta, 0));
       });
     }), n.querySelectorAll("[data-hd-power-allocation]").forEach((s) => {
       s.addEventListener("change", async (r) => {
@@ -2169,7 +2169,7 @@ class pi extends $t {
           (m = (u = ui.notifications) == null ? void 0 : u.warn) == null || m.call(u, "That ship equipment could not be found.");
           return;
         }
-        await he(p, v(c.value, 0));
+        await he(p, S(c.value, 0));
       });
     }), n.querySelectorAll("[data-hd-remove-item]").forEach((s) => {
       s.addEventListener("click", async (r) => {
@@ -2327,7 +2327,7 @@ async function mt() {
   }), J);
 }
 function fi() {
-  game.settings.register(S, ve, {
+  game.settings.register(v, ve, {
     name: "HoloDock Ship Profiles",
     hint: "World-level ship profile and loadout data.",
     scope: "world",
@@ -2335,7 +2335,7 @@ function fi() {
     type: Object,
     default: {},
     onChange: j
-  }), game.settings.register(S, Se, {
+  }), game.settings.register(v, Se, {
     name: "HoloDock Slot Categories",
     hint: "Reusable equipment slot categories for HoloDock.",
     scope: "world",
@@ -2343,7 +2343,7 @@ function fi() {
     type: Array,
     default: G,
     onChange: j
-  }), game.settings.register(S, ke, {
+  }), game.settings.register(v, ke, {
     name: "HoloDock Default Ship Profile",
     hint: "The ship profile this user opens by default.",
     scope: "client",
@@ -2385,7 +2385,7 @@ function mi() {
     activateEquipment: We
   };
   game.holodock = e;
-  const t = game.modules.get(S);
+  const t = game.modules.get(v);
   t && (t.api = e);
 }
 function hi() {
@@ -2393,10 +2393,11 @@ function hi() {
   return (e != null && e.active ? e.api : null) ?? game.holosuite ?? globalThis.HoloSuiteCoreApi ?? null;
 }
 function pe() {
+  var i;
   const e = hi();
   if (!(e != null && e.registerApp)) return !1;
   const t = {
-    id: S,
+    id: v,
     title: "HoloDock",
     icon: "fa-solid fa-shuttle-space",
     premium: !1,
@@ -2404,7 +2405,22 @@ function pe() {
     description: "View and manage system-agnostic ship loadouts.",
     open: () => mt()
   };
-  return e.registerApp(t), !0;
+  return e.registerApp(t), (i = e.registerWhatsNew) == null || i.call(e, {
+    moduleId: v,
+    title: "HoloDock",
+    tier: "free",
+    version: "1.0.0",
+    updated: "2026-07-22",
+    icon: "fa-solid fa-shuttle-space",
+    url: "https://github.com/Thuurvdv/holodock/releases/tag/v1.0.0",
+    entries: [
+      {
+        title: "Ship loadouts join HoloSuite",
+        summary: "Create system-agnostic ship profiles with equipment slots, power allocation, damage tracking, ship-image pins, and player-facing install or activation permissions.",
+        tags: ["Ships", "Loadouts", "Power", "Foundry v12-v14"]
+      }
+    ]
+  }), !0;
 }
 function gi() {
   if (pe()) return;
@@ -2418,5 +2434,5 @@ Hooks.once("init", async () => {
   fi(), Handlebars.registerHelper("hdFallback", (e, t) => e || t), await loadTemplates([Ue]);
 });
 Hooks.once("ready", () => {
-  mi(), Rt(), Hooks.on("getApplicationHeaderButtons", ie), Hooks.on("getApplicationV1HeaderButtons", ie), Hooks.on("getDocumentSheetHeaderButtons", ie), Hooks.on("getItemSheetHeaderButtons", ie), Hooks.on("getHeaderControlsApplicationV2", ci), Hooks.on("renderItemSheet", Q), Hooks.on("renderItemSheetV2", Q), Hooks.on("renderApplication", Q), Hooks.on("renderApplicationV1", Q), Hooks.on("renderApplicationV2", Q), Hooks.on("renderChatMessage", Re), Hooks.on("renderChatMessageHTML", Re), gi(), console.log(`${S} | Ready. API available at game.holodock.`);
+  mi(), Rt(), Hooks.on("getApplicationHeaderButtons", ie), Hooks.on("getApplicationV1HeaderButtons", ie), Hooks.on("getDocumentSheetHeaderButtons", ie), Hooks.on("getItemSheetHeaderButtons", ie), Hooks.on("getHeaderControlsApplicationV2", ci), Hooks.on("renderItemSheet", Q), Hooks.on("renderItemSheetV2", Q), Hooks.on("renderApplication", Q), Hooks.on("renderApplicationV1", Q), Hooks.on("renderApplicationV2", Q), Hooks.on("renderChatMessage", Re), Hooks.on("renderChatMessageHTML", Re), gi(), console.log(`${v} | Ready. API available at game.holodock.`);
 });

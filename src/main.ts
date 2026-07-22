@@ -3203,6 +3203,22 @@ function registerWithHoloSuite(): boolean {
     open: () => openHoloDock()
   };
   api.registerApp(registration);
+  api.registerWhatsNew?.({
+    moduleId: MODULE_ID,
+    title: "HoloDock",
+    tier: "free",
+    version: "1.0.0",
+    updated: "2026-07-22",
+    icon: "fa-solid fa-shuttle-space",
+    url: "https://github.com/Thuurvdv/holodock/releases/tag/v1.0.0",
+    entries: [
+      {
+        title: "Ship loadouts join HoloSuite",
+        summary: "Create system-agnostic ship profiles with equipment slots, power allocation, damage tracking, ship-image pins, and player-facing install or activation permissions.",
+        tags: ["Ships", "Loadouts", "Power", "Foundry v12-v14"]
+      }
+    ]
+  });
   return true;
 }
 
