@@ -146,6 +146,7 @@ type HoloDockSocketMessage = {
 const LegacyApplication = getApplicationBase();
 
 let holodockApp: HoloDockApp | null = null;
+let holodockOpenPromise: Promise<HoloDockApp> | null = null;
 let selectedProfileId = "";
 let selectedPage = "overview";
 let selectedEquipmentSlotId = "";
@@ -3098,9 +3099,17 @@ class HoloDockApp extends LegacyApplication {
 }
 
 async function openHoloDock(): Promise<HoloDockApp> {
-  if (!holodockApp) holodockApp = new HoloDockApp();
-  await holodockApp.render(true);
-  return holodockApp;
+  if (holodockOpenPromise) return holodockOpenPromise;
+
+  holodockOpenPromise = (async () => {
+    if (!holodockApp) holodockApp = new HoloDockApp();
+    await holodockApp.render(true);
+    return holodockApp;
+  })().finally(() => {
+    holodockOpenPromise = null;
+  });
+
+  return holodockOpenPromise;
 }
 
 function registerSettings(): void {

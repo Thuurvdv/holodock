@@ -1,26 +1,26 @@
-var ht = Object.defineProperty;
-var gt = (e, t, i) => t in e ? ht(e, t, { enumerable: !0, configurable: !0, writable: !0, value: i }) : e[t] = i;
-var K = (e, t, i) => gt(e, typeof t != "symbol" ? t + "" : t, i);
-function wt() {
+var gt = Object.defineProperty;
+var wt = (e, t, i) => t in e ? gt(e, t, { enumerable: !0, configurable: !0, writable: !0, value: i }) : e[t] = i;
+var K = (e, t, i) => wt(e, typeof t != "symbol" ? t + "" : t, i);
+function yt() {
   var e, t, i;
   return ((t = (e = globalThis.foundry) == null ? void 0 : e.applications) == null ? void 0 : t.api) ?? ((i = foundry == null ? void 0 : foundry.applications) == null ? void 0 : i.api) ?? null;
 }
-function yt() {
+function bt() {
   var e, t, i;
   return ((t = (e = globalThis.foundry) == null ? void 0 : e.appv1) == null ? void 0 : t.api) ?? ((i = foundry == null ? void 0 : foundry.appv1) == null ? void 0 : i.api) ?? null;
 }
-function bt(e = {}, t = {}) {
+function vt(e = {}, t = {}) {
   var n, a, o;
   const i = ((a = (n = globalThis.foundry) == null ? void 0 : n.utils) == null ? void 0 : a.mergeObject) ?? ((o = foundry == null ? void 0 : foundry.utils) == null ? void 0 : o.mergeObject);
   return typeof i == "function" ? i(e, t, { inplace: !1 }) : { ...e, ...t };
 }
-function vt() {
+function St() {
   var e, t, i, n, a;
   return ((i = (t = (e = globalThis.foundry) == null ? void 0 : e.utils) == null ? void 0 : t.randomID) == null ? void 0 : i.call(t, 8)) ?? ((a = (n = foundry == null ? void 0 : foundry.utils) == null ? void 0 : n.randomID) == null ? void 0 : a.call(n, 8)) ?? Math.random().toString(36).slice(2, 10);
 }
-function xe(e = {}) {
+function Me(e = {}) {
   return {
-    id: String(e.id ?? `legacy-application-${vt()}`),
+    id: String(e.id ?? `legacy-application-${St()}`),
     tag: e.tag ?? "section",
     classes: Array.isArray(e.classes) ? e.classes : [],
     window: {
@@ -34,11 +34,11 @@ function xe(e = {}) {
     }
   };
 }
-function St(e) {
+function kt(e) {
   return class extends e {
     constructor(n = {}) {
-      const a = bt(new.target.defaultOptions ?? {}, n);
-      super(xe(a));
+      const a = vt(new.target.defaultOptions ?? {}, n);
+      super(Me(a));
       K(this, "_v1Options");
       this._v1Options = a;
     }
@@ -46,7 +46,7 @@ function St(e) {
       return {};
     }
     static get DEFAULT_OPTIONS() {
-      return xe(this.defaultOptions ?? {});
+      return Me(this.defaultOptions ?? {});
     }
     activateListeners(n) {
     }
@@ -87,13 +87,13 @@ function St(e) {
     }
   };
 }
-function kt() {
-  const e = wt(), t = yt(), i = globalThis.Application ?? (t == null ? void 0 : t.Application) ?? (e == null ? void 0 : e.ApplicationV1);
+function qt() {
+  const e = yt(), t = bt(), i = globalThis.Application ?? (t == null ? void 0 : t.Application) ?? (e == null ? void 0 : e.ApplicationV1);
   if (i) return i;
   const n = e == null ? void 0 : e.ApplicationV2;
-  return n ? St(n) : null;
+  return n ? kt(n) : null;
 }
-const S = "holodock", Be = "HoloDock", be = "profiles", ve = "slotCategories", Se = "defaultProfile", pe = "shipEquipment", Ne = `modules/${S}/templates/holodock.hbs`, ne = "modules/holodock/assets/SpaceshipDefault.webp", qt = "icons/svg/space-station.svg", G = ["Weapons", "Defense", "Utility", "Engines", "Cargo", "Special"];
+const S = "holodock", Ne = "HoloDock", ve = "profiles", Se = "slotCategories", ke = "defaultProfile", fe = "shipEquipment", Ue = `modules/${S}/templates/holodock.hbs`, ae = "modules/holodock/assets/SpaceshipDefault.webp", At = "icons/svg/space-station.svg", G = ["Weapons", "Defense", "Utility", "Engines", "Cargo", "Special"];
 function I(e) {
   var t, i;
   return (t = foundry == null ? void 0 : foundry.utils) != null && t.deepClone ? foundry.utils.deepClone(e) : (i = foundry == null ? void 0 : foundry.utils) != null && i.duplicate ? foundry.utils.duplicate(e) : JSON.parse(JSON.stringify(e ?? {}));
@@ -113,9 +113,9 @@ function q(e = "edit HoloDock") {
   var t, i, n;
   return (t = game.user) != null && t.isGM ? !0 : ((n = (i = ui.notifications) == null ? void 0 : i.warn) == null || n.call(i, `Only a GM can ${e}.`), !1);
 }
-const At = kt();
-let B = null, L = "", $ = "overview", O = "", Me = "", Le = 0;
-const le = /* @__PURE__ */ new Map(), Ue = `module.${S}`, fe = [
+const $t = qt();
+let B = null, J = null, L = "", $ = "overview", O = "", Le = "", Oe = 0;
+const ce = /* @__PURE__ */ new Map(), je = `module.${S}`, me = [
   { id: "overview", label: "Overview", icon: "fa-solid fa-display" },
   { id: "systems", label: "Systems", icon: "fa-solid fa-microchip" },
   { id: "power", label: "Power Grid", icon: "fa-solid fa-bolt" },
@@ -145,21 +145,21 @@ function R(e = {}) {
     note: String(e.note || "").trim()
   };
 }
-function je(e = {}) {
+function Ge(e = {}) {
   return {
     slotId: String(e.slotId || "").trim(),
     allocated: Math.max(0, v(e.allocated, 0)),
     online: e.online !== !1
   };
 }
-function Ge(e = {}) {
+function Ve(e = {}) {
   return {
     id: String(e.id || T("preset")),
     name: String(e.name || "Power Preset").trim() || "Power Preset",
-    entries: Array.isArray(e.entries) ? e.entries.map(je).filter((t) => t.slotId) : []
+    entries: Array.isArray(e.entries) ? e.entries.map(Ge).filter((t) => t.slotId) : []
   };
 }
-function Ve(e = {}) {
+function _e(e = {}) {
   return {
     hiddenFromPlayers: e.hiddenFromPlayers === !0,
     allowPlayerEquip: e.allowPlayerEquip === !0,
@@ -167,15 +167,15 @@ function Ve(e = {}) {
   };
 }
 function H(e = {}) {
-  const t = String(e.image || ne).trim() || ne;
+  const t = String(e.image || ae).trim() || ae;
   return {
     id: String(e.id || T("ship")),
     name: String(e.name || "Party Ship").trim() || "Party Ship",
     shipClass: String(e.shipClass || "").trim(),
-    image: t === qt ? ne : t,
+    image: t === At ? ae : t,
     powerCapacity: Math.max(0, v(e.powerCapacity, 0)),
-    permissions: Ve(e.permissions),
-    powerPresets: Array.isArray(e.powerPresets) ? e.powerPresets.map(Ge) : [],
+    permissions: _e(e.permissions),
+    powerPresets: Array.isArray(e.powerPresets) ? e.powerPresets.map(Ve) : [],
     stats: Array.isArray(e.stats) ? e.stats.map(R) : [],
     slots: Array.isArray(e.slots) ? e.slots.map(N) : []
   };
@@ -184,15 +184,15 @@ function v(e, t = 0) {
   const i = Number(e);
   return Number.isFinite(i) ? i : t;
 }
-function _e(e) {
+function ze(e) {
   return Array.isArray(e) ? e.map((t) => String(t).trim()).filter(Boolean) : String(e || "").split(",").map((t) => t.trim()).filter(Boolean);
 }
-function oe(e = {}) {
+function se(e = {}) {
   var o, s, r, l, c, d, p, u, m, f, w, h, y, k, C, E, U;
   const t = Math.max(0, v((o = e.durability) == null ? void 0 : o.max, 0)), i = Math.min(t, Math.max(0, v((s = e.durability) == null ? void 0 : s.value, t))), n = String(e.category || G[0]).trim() || G[0], a = {
     enabled: e.enabled === !0,
     category: n,
-    tags: _e(e.tags),
+    tags: ze(e.tags),
     activation: {
       enabled: ((r = e.activation) == null ? void 0 : r.enabled) === !0,
       label: String(((l = e.activation) == null ? void 0 : l.label) || "Activate").trim() || "Activate",
@@ -216,23 +216,23 @@ function oe(e = {}) {
       online: ((U = e.power) == null ? void 0 : U.online) !== !1
     }
   };
-  return $t(a);
+  return Et(a);
 }
-function $t(e) {
+function Et(e) {
   const t = I(e), i = t.enabled && t.durability.enabled && t.durability.value <= t.durability.brokenAt, n = t.enabled && t.power.enabled && t.power.draw > 0 && t.power.allocated <= 0;
   return t.enabled && t.power.enabled && (n || i) && (t.power.online = !1), t;
 }
 function A(e) {
   var t;
-  return oe(((t = e == null ? void 0 : e.getFlag) == null ? void 0 : t.call(e, S, pe)) ?? {});
+  return se(((t = e == null ? void 0 : e.getFlag) == null ? void 0 : t.call(e, S, fe)) ?? {});
 }
-function Et(e) {
+function Ct(e) {
   return A(e).enabled;
 }
 async function V(e, t, i = {}) {
   var o;
   if (i.requireGm !== !1 && !q("tag ship equipment") || !(e != null && e.setFlag)) return null;
-  const n = A(e), a = oe({
+  const n = A(e), a = se({
     ...n,
     ...t,
     tags: t.tags ?? n.tags,
@@ -249,9 +249,9 @@ async function V(e, t, i = {}) {
       ...t.power
     }
   });
-  return a.enabled ? (await e.setFlag(S, pe, a), await he(a.category), j(), a) : (await ((o = e.unsetFlag) == null ? void 0 : o.call(e, S, pe)), j(), a);
+  return a.enabled ? (await e.setFlag(S, fe, a), await ge(a.category), j(), a) : (await ((o = e.unsetFlag) == null ? void 0 : o.call(e, S, fe)), j(), a);
 }
-async function ae(e, t, i = {}) {
+async function oe(e, t, i = {}) {
   const n = A(e), a = Math.max(0, n.durability.max), o = Math.min(a, Math.max(0, v(t, n.durability.value)));
   return V(e, {
     enabled: n.enabled,
@@ -261,7 +261,7 @@ async function ae(e, t, i = {}) {
     }
   }, i);
 }
-async function ze(e, t) {
+async function Ye(e, t) {
   const i = A(e);
   return !i.enabled || !i.power.enabled ? null : V(e, {
     enabled: i.enabled,
@@ -271,7 +271,7 @@ async function ze(e, t) {
     }
   });
 }
-async function me(e, t) {
+async function he(e, t) {
   const i = A(e);
   return !i.enabled || !i.power.enabled ? null : V(e, {
     enabled: i.enabled,
@@ -281,16 +281,16 @@ async function me(e, t) {
     }
   });
 }
-function ke(e) {
+function qe(e) {
   const t = e.durability, i = e.enabled && t.enabled, n = Math.max(0, t.max), a = Math.min(n, Math.max(0, t.value)), o = i && a <= t.brokenAt, s = i && !o && n > 0 && a < n;
   return { isBroken: o, isDamaged: s, value: a, max: n };
 }
-async function qe(e, t = {}) {
+async function Ae(e, t = {}) {
   var a, o, s, r, l, c, d, p, u;
   const i = globalThis.ChatMessage;
   if (!(i != null && i.create))
     return (o = (a = ui.notifications) == null ? void 0 : a.warn) == null || o.call(a, "Foundry chat is not available."), null;
-  let n = { alias: ((s = game.user) == null ? void 0 : s.name) ?? Be };
+  let n = { alias: ((s = game.user) == null ? void 0 : s.name) ?? Ne };
   try {
     n = ((c = i.getSpeaker) == null ? void 0 : c.call(i, { actor: ((r = game.user) == null ? void 0 : r.character) ?? void 0, alias: (l = game.user) == null ? void 0 : l.name })) ?? n;
   } catch (m) {
@@ -309,7 +309,7 @@ async function qe(e, t = {}) {
 }
 async function Y(e, t, i = {}) {
   var c;
-  const n = A(e), a = ke(n), o = i.slot, s = i.profile, r = t.blocked || !t.ok ? "Blocked" : t.handled ? "Activated" : "Unhandled", l = `
+  const n = A(e), a = qe(n), o = i.slot, s = i.profile, r = t.blocked || !t.ok ? "Blocked" : t.handled ? "Activated" : "Unhandled", l = `
     <article class="hd-chat-card ${t.blocked || !t.ok ? "is-blocked" : "is-activated"}">
       <header>
         <img src="${g((e == null ? void 0 : e.img) || "icons/svg/item-bag.svg")}" alt="">
@@ -331,9 +331,9 @@ async function Y(e, t, i = {}) {
       ${t.message ? `<p>${g(t.message)}</p>` : ""}
     </article>
   `;
-  await qe(l);
+  await Ae(l);
 }
-async function Ye(e, t = {}) {
+async function We(e, t = {}) {
   const i = A(e);
   if (!i.enabled || !i.activation.enabled)
     return { ok: !1, handled: !1, blocked: !0, message: "That item is not configured as activatable ship equipment." };
@@ -345,7 +345,7 @@ async function Ye(e, t = {}) {
     const u = { ok: !1, handled: !1, blocked: !0, message: "That ship equipment does not have enough allocated power." };
     return await Y(e, u, t), u;
   }
-  const n = ke(i);
+  const n = qe(i);
   if (i.activation.blockWhenBroken && n.isBroken) {
     const u = { ok: !1, handled: !1, blocked: !0, message: "That ship equipment is broken." };
     return await Y(e, u, t), u;
@@ -413,7 +413,7 @@ async function Ye(e, t = {}) {
   try {
     c = !!await V(e, l, { requireGm: !1 });
   } catch (u) {
-    console.warn(`${Be} | Failed to save activation consequences`, u);
+    console.warn(`${Ne} | Failed to save activation consequences`, u);
   }
   !c && r.length && r.push("Consequence state could not be saved; check item permissions.");
   const d = s.handled === !0 || r.length > 0, p = {
@@ -426,7 +426,7 @@ async function Ye(e, t = {}) {
   return Hooks.callAll(`${S}.equipmentActivated`, { item: e, equipment: A(e), result: p, ...t }), await Y(e, p, t), p;
 }
 function D() {
-  const e = game.settings.get(S, be);
+  const e = game.settings.get(S, ve);
   if (!e || typeof e != "object" || Array.isArray(e)) return {};
   const t = {};
   for (const i of Object.values(e)) {
@@ -435,39 +435,39 @@ function D() {
   }
   return t;
 }
-function We() {
+function Xe() {
   return Object.values(D()).sort((e, t) => e.name.localeCompare(t.name));
 }
-function Xe() {
+function Ke() {
   var t;
-  const e = We();
+  const e = Xe();
   return (t = game.user) != null && t.isGM ? e : e.filter((i) => !i.permissions.hiddenFromPlayers);
 }
-function Ke() {
-  return String(game.settings.get(S, Se) || "");
+function Je() {
+  return String(game.settings.get(S, ke) || "");
 }
-async function Ae(e) {
-  await game.settings.set(S, Se, e);
+async function $e(e) {
+  await game.settings.set(S, ke, e);
 }
 async function M(e, t = {}) {
-  t.requireGm !== !1 && !q("save ship loadouts") || (await game.settings.set(S, be, e), j());
+  t.requireGm !== !1 && !q("save ship loadouts") || (await game.settings.set(S, ve, e), j());
 }
-function Z() {
-  const e = game.settings.get(S, ve), t = Array.isArray(e) ? e.map((i) => String(i).trim()).filter(Boolean) : [];
+function ee() {
+  const e = game.settings.get(S, Se), t = Array.isArray(e) ? e.map((i) => String(i).trim()).filter(Boolean) : [];
   return t.length ? [...new Set(t)] : G;
 }
-async function he(e) {
+async function ge(e) {
   var n;
   const t = String(e || "").trim();
   if (!t || !((n = game.user) != null && n.isGM)) return;
-  const i = Z();
-  i.some((a) => a.toLowerCase() === t.toLowerCase()) || await game.settings.set(S, ve, [...i, t]);
+  const i = ee();
+  i.some((a) => a.toLowerCase() === t.toLowerCase()) || await game.settings.set(S, Se, [...i, t]);
 }
 function b() {
-  const e = Xe();
+  const e = Ke();
   if (!e.length) return null;
   if (!L || !e.some((t) => t.id === L)) {
-    const t = Ke();
+    const t = Je();
     L = e.some((i) => i.id === t) ? t : e[0].id;
   }
   return e.find((t) => t.id === L) ?? null;
@@ -476,13 +476,13 @@ function _(e = L) {
   const t = D()[e];
   return t ? H(t) : null;
 }
-async function Je() {
+async function Qe() {
   if (!q("create ship profiles")) return null;
   const e = H({
     id: T("ship"),
     name: "New Ship",
     shipClass: "",
-    image: ne,
+    image: ae,
     powerCapacity: 0,
     stats: [
       R({ id: T("stat"), label: "Speed", value: "6", note: "" }),
@@ -498,9 +498,9 @@ async function Je() {
       category: i
     }))
   }), t = I(D());
-  return t[e.id] = e, L = e.id, await Ae(e.id), await M(t), e;
+  return t[e.id] = e, L = e.id, await $e(e.id), await M(t), e;
 }
-async function Qe(e, t) {
+async function Ze(e, t) {
   if (!q("update ship profiles")) return null;
   const i = I(D()), n = i[e];
   if (!n) return null;
@@ -517,7 +517,7 @@ async function Qe(e, t) {
   });
   return i[e] = a, await M(i), a;
 }
-async function Ze(e, t) {
+async function et(e, t) {
   if (!q("update HoloDock player rights")) return null;
   const i = I(D()), n = i[e];
   if (!n) return null;
@@ -530,7 +530,7 @@ async function Ze(e, t) {
   });
   return i[e] = a, await M(i), a;
 }
-async function et(e, t) {
+async function tt(e, t) {
   var s, r;
   if (!q("save power presets")) return null;
   const i = I(D()), n = i[e];
@@ -539,7 +539,7 @@ async function et(e, t) {
   for (const l of n.slots) {
     if (!l.itemUuid) continue;
     const c = await P(l.itemUuid), d = A(c);
-    !d.enabled || !d.power.enabled || a.push(je({
+    !d.enabled || !d.power.enabled || a.push(Ge({
       slotId: l.id,
       allocated: d.power.allocated,
       online: d.power.online
@@ -547,14 +547,14 @@ async function et(e, t) {
   }
   if (!a.length)
     return (r = (s = ui.notifications) == null ? void 0 : s.warn) == null || r.call(s, "No powered ship equipment is currently slotted."), null;
-  const o = Ge({
+  const o = Ve({
     id: T("preset"),
     name: t,
     entries: a
   });
   return n.powerPresets = [...n.powerPresets ?? [], o], i[e] = H(n), await M(i), o;
 }
-async function tt(e, t) {
+async function it(e, t) {
   var s;
   if (!q("delete power presets")) return !1;
   const i = I(D()), n = i[e];
@@ -566,7 +566,7 @@ async function tt(e, t) {
     defaultYes: !1
   }) ? !1 : (n.powerPresets = n.powerPresets.filter((r) => r.id !== t), i[e] = H(n), await M(i), !0);
 }
-async function Ct(e, t) {
+async function Pt(e, t) {
   const i = [];
   let n = 0, a = 0, o = 0, s = 0, r = 0, l = 0;
   for (const c of t.entries) {
@@ -587,9 +587,9 @@ async function Ct(e, t) {
   }
   return { changes: i, appliedCount: n, missingCount: a, currentAllocated: o, targetAllocated: s, onlineCount: r, offlineCount: l };
 }
-async function Pt(e, t) {
+async function Dt(e, t) {
   var a, o;
-  const i = await Ct(e, t);
+  const i = await Pt(e, t);
   if (!i.appliedCount)
     return (o = (a = ui.notifications) == null ? void 0 : a.warn) == null || o.call(a, "That preset did not match any powered slotted equipment."), !1;
   const n = i.changes.length ? i.changes.map((s) => `
@@ -615,9 +615,9 @@ async function Pt(e, t) {
     defaultYes: !0
   });
 }
-async function Dt(e, t, i) {
+async function Tt(e, t, i) {
   const n = t.entries.reduce((o, s) => s.online ? o + s.allocated : o, 0), a = t.entries.filter((o) => o.online).length;
-  await qe(
+  await Ae(
     `
       <article class="hd-chat-card is-activated">
         <header>
@@ -637,11 +637,11 @@ async function Dt(e, t, i) {
     `
   );
 }
-async function it(e, t) {
+async function nt(e, t) {
   var o, s, r, l;
   if (!q("apply power presets")) return !1;
   const i = _(e), n = i == null ? void 0 : i.powerPresets.find((c) => c.id === t);
-  if (!i || !n || !await Pt(i, n)) return !1;
+  if (!i || !n || !await Dt(i, n)) return !1;
   let a = 0;
   for (const c of n.entries) {
     const d = i.slots.find((m) => m.id === c.slotId), p = await P((d == null ? void 0 : d.itemUuid) ?? ""), u = A(p);
@@ -654,9 +654,9 @@ async function it(e, t) {
       }
     }), a += 1);
   }
-  return a ? ((l = (r = ui.notifications) == null ? void 0 : r.info) == null || l.call(r, `Applied power preset: ${n.name}`), await Dt(i, n, a), j(), !0) : ((s = (o = ui.notifications) == null ? void 0 : o.warn) == null || s.call(o, "That preset did not match any powered slotted equipment."), !1);
+  return a ? ((l = (r = ui.notifications) == null ? void 0 : r.info) == null || l.call(r, `Applied power preset: ${n.name}`), await Tt(i, n, a), j(), !0) : ((s = (o = ui.notifications) == null ? void 0 : o.warn) == null || s.call(o, "That preset did not match any powered slotted equipment."), !1);
 }
-async function nt(e = L) {
+async function at(e = L) {
   if (!q("delete ship profiles")) return !1;
   const t = _(e);
   if (!t || !await Dialog.confirm({
@@ -665,16 +665,16 @@ async function nt(e = L) {
     defaultYes: !1
   })) return !1;
   const n = I(D());
-  return delete n[e], L = Object.keys(n)[0] ?? "", Ke() === e && await Ae(L), await M(n), !0;
+  return delete n[e], L = Object.keys(n)[0] ?? "", Je() === e && await $e(L), await M(n), !0;
 }
-async function $e(e, t) {
+async function Ee(e, t) {
   if (!q("edit ship statistics")) return null;
   const i = I(D()), n = i[e];
   if (!n) return null;
   const a = R(t), o = n.stats.findIndex((s) => s.id === a.id);
   return o >= 0 ? n.stats[o] = { ...n.stats[o], ...a } : n.stats.push(a), i[e] = H(n), await M(i), a;
 }
-async function at(e, t) {
+async function ot(e, t) {
   if (!q("delete ship statistics")) return !1;
   const i = I(D()), n = i[e];
   if (!n) return !1;
@@ -685,14 +685,14 @@ async function at(e, t) {
     defaultYes: !1
   }) ? !1 : (n.stats = n.stats.filter((s) => s.id !== t), i[e] = H(n), await M(i), !0);
 }
-async function ot(e, t) {
+async function st(e, t) {
   if (!q("edit equipment slots")) return null;
   const i = I(D()), n = i[e];
   if (!n) return null;
   const a = n.slots.findIndex((s) => s.id === t.id), o = N(a >= 0 ? { ...n.slots[a], ...t } : t);
-  return a >= 0 ? n.slots[a] = o : n.slots.push(o), i[e] = H(n), await he(o.category), o.requiredCategory && await he(o.requiredCategory), await M(i), o;
+  return a >= 0 ? n.slots[a] = o : n.slots.push(o), i[e] = H(n), await ge(o.category), o.requiredCategory && await ge(o.requiredCategory), await M(i), o;
 }
-async function st(e, t) {
+async function rt(e, t) {
   if (!q("delete equipment slots")) return !1;
   const i = I(D()), n = i[e];
   if (!n) return !1;
@@ -703,37 +703,37 @@ async function st(e, t) {
     defaultYes: !1
   }) ? !1 : (n.slots = n.slots.filter((s) => s.id !== t), i[e] = H(n), await M(i), !0);
 }
-async function ge(e, t, i, n) {
+async function we(e, t, i, n) {
   var s;
   if (!q("place equipment links")) return !1;
   const a = I(D()), o = (s = a[e]) == null ? void 0 : s.slots.find((r) => r.id === t);
   return o ? (o.anchorX = Math.min(100, Math.max(0, Number(i))), o.anchorY = Math.min(100, Math.max(0, Number(n))), await M(a), !0) : !1;
 }
-async function rt(e, t) {
+async function lt(e, t) {
   var a;
   if (!q("clear equipment links")) return !1;
   const i = I(D()), n = (a = i[e]) == null ? void 0 : a.slots.find((o) => o.id === t);
   return n ? (delete n.anchorX, delete n.anchorY, await M(i), !0) : !1;
 }
-function lt(e) {
+function ct(e) {
   const t = [];
   return e.requiredCategory && t.push(`Category: ${e.requiredCategory}`), e.requiredTags.length && t.push(`Tags: ${e.requiredTags.join(", ")}`), t.join(" | ");
 }
-function Ee(e, t) {
+function Ce(e, t) {
   const i = A(t);
-  return i.enabled ? i : oe({
+  return i.enabled ? i : se({
     ...i,
     enabled: !0,
     category: e.requiredCategory || e.category
   });
 }
-function se(e, t, i = Ee(e, t)) {
+function re(e, t, i = Ce(e, t)) {
   if (e.requiredCategory && i.category.toLowerCase() !== e.requiredCategory.toLowerCase())
     return { ok: !1, reason: `That slot requires ${e.requiredCategory} ship equipment.` };
   const n = new Set(i.tags.map((o) => o.toLowerCase())), a = e.requiredTags.filter((o) => !n.has(o.toLowerCase()));
   return a.length ? { ok: !1, reason: `That slot requires tag${a.length === 1 ? "" : "s"}: ${a.join(", ")}.` } : { ok: !0 };
 }
-async function Tt(e, t, i) {
+async function It(e, t, i) {
   return Dialog.confirm({
     title: "Install Ship Equipment",
     content: `
@@ -751,15 +751,15 @@ async function Tt(e, t, i) {
     width: 440
   });
 }
-function we(e) {
+function ye(e) {
   var t;
   return ((t = game.user) == null ? void 0 : t.isGM) === !0 || (e == null ? void 0 : e.permissions.allowPlayerEquip) === !0;
 }
-function It(e) {
+function xt(e) {
   var t;
   return ((t = game.user) == null ? void 0 : t.isGM) === !0 || (e == null ? void 0 : e.permissions.allowPlayerActivate) === !0;
 }
-async function Ce(e, t, i, n = {}) {
+async function Pe(e, t, i, n = {}) {
   var u, m;
   const a = await P(i);
   if (!a)
@@ -769,7 +769,7 @@ async function Ce(e, t, i, n = {}) {
   if (!s.permissions.allowPlayerEquip && !((u = game.user) != null && u.isGM))
     return { ok: !1, message: "Players are not allowed to install equipment on this ship." };
   if (r.itemUuid) return { ok: !1, message: "That equipment slot is already occupied." };
-  const l = N(r), c = A(a), d = Ee(l, a), p = se(l, a, d);
+  const l = N(r), c = A(a), d = Ce(l, a), p = re(l, a, d);
   if (!p.ok)
     return { ok: !1, message: p.reason ?? "That item is not compatible with this ship slot." };
   if (!c.enabled) {
@@ -778,21 +778,21 @@ async function Ce(e, t, i, n = {}) {
   }
   return r.itemUuid = a.uuid, await M(o), n.openEditor && !c.enabled && window.setTimeout(() => X(a), 50), { ok: !0, message: `${a.name ?? "Item"} installed in ${l.label}.` };
 }
-function xt() {
+function Mt() {
   var n;
   const e = game.users, i = (Array.isArray(e) ? e : Array.isArray(e == null ? void 0 : e.contents) ? e.contents : Array.from(e ?? [])).filter((a) => (a == null ? void 0 : a.active) && (a == null ? void 0 : a.isGM)).sort((a, o) => String(a.id ?? "").localeCompare(String(o.id ?? "")));
   return String(((n = i[0]) == null ? void 0 : n.id) ?? "");
 }
-function ce(e) {
+function de(e) {
   var t, i;
-  (i = (t = game.socket) == null ? void 0 : t.emit) == null || i.call(t, Ue, e);
+  (i = (t = game.socket) == null ? void 0 : t.emit) == null || i.call(t, je, e);
 }
-function Mt(e) {
+function Lt(e) {
   var n, a;
   const t = game.users, i = ((n = t == null ? void 0 : t.get) == null ? void 0 : n.call(t, e)) ?? ((a = t == null ? void 0 : t.find) == null ? void 0 : a.call(t, (o) => (o == null ? void 0 : o.id) === e));
   return String((i == null ? void 0 : i.name) || "A player");
 }
-async function Lt(e) {
+async function Ot(e) {
   const t = _(String(e.profileId || "")), i = t == null ? void 0 : t.slots.find((a) => a.id === e.slotId), n = await P(String(e.itemUuid || ""));
   return !t || !i || !n ? !1 : Dialog.confirm({
     title: "Player Ship Equipment Install",
@@ -800,7 +800,7 @@ async function Lt(e) {
       <section class="hd-install-confirm">
         <i class="fa-solid fa-user-shield"></i>
         <div>
-          <p><strong>${g(Mt(e.userId))}</strong> wants to install <strong>${g(n.name ?? "this item")}</strong>.</p>
+          <p><strong>${g(Lt(e.userId))}</strong> wants to install <strong>${g(n.name ?? "this item")}</strong>.</p>
           <p class="hd-muted">Ship: ${g(t.name)} | Slot: ${g(i.label)}</p>
           <p class="hd-muted">Approving will convert the item to HoloDock ship equipment if needed and place it in the empty slot.</p>
         </div>
@@ -812,10 +812,10 @@ async function Lt(e) {
     width: 480
   });
 }
-async function Ot(e, t, i) {
+async function Ht(e, t, i) {
   var l, c, d, p, u, m, f;
   const n = T("equip"), a = _(e), o = a == null ? void 0 : a.slots.find((w) => w.id === t), s = await P(i);
-  return !a || !o || !s ? ((c = (l = ui.notifications) == null ? void 0 : l.warn) == null || c.call(l, "That ship equipment request could not be prepared."), !1) : await qe(
+  return !a || !o || !s ? ((c = (l = ui.notifications) == null ? void 0 : l.warn) == null || c.call(l, "That ship equipment request could not be prepared."), !1) : await Ae(
     `
       <article class="hd-chat-card hd-install-request-card" data-hd-install-request="${g(n)}" data-hd-profile-id="${g(e)}" data-hd-slot-id="${g(t)}" data-hd-item-uuid="${g(i)}" data-hd-user-id="${g(((d = game.user) == null ? void 0 : d.id) ?? "")}">
         <header>
@@ -851,9 +851,9 @@ async function Ot(e, t, i) {
     }
   ) ? ((f = (m = ui.notifications) == null ? void 0 : m.info) == null || f.call(m, "HoloDock posted the install request to chat."), !0) : !1;
 }
-function Ht() {
+function Rt() {
   var e, t;
-  (t = (e = game.socket) == null ? void 0 : e.on) == null || t.call(e, Ue, async (i) => {
+  (t = (e = game.socket) == null ? void 0 : e.on) == null || t.call(e, je, async (i) => {
     var s, r, l, c, d, p;
     if (!i || typeof i != "object") return;
     if (i.action === "equipItemResult") {
@@ -861,10 +861,10 @@ function Ht() {
       i.ok ? (l = (r = ui.notifications) == null ? void 0 : r.info) == null || l.call(r, i.message ?? "Ship equipment installed.") : (d = (c = ui.notifications) == null ? void 0 : c.warn) == null || d.call(c, i.message ?? "Ship equipment could not be installed."), j();
       return;
     }
-    if (i.action !== "equipItem" || !((p = game.user) != null && p.isGM) || game.user.id !== xt()) return;
+    if (i.action !== "equipItem" || !((p = game.user) != null && p.isGM) || game.user.id !== Mt()) return;
     const n = _(String(i.profileId || ""));
     if (!(n != null && n.permissions.allowPlayerEquip)) {
-      ce({
+      de({
         action: "equipItemResult",
         requestId: i.requestId,
         userId: i.userId,
@@ -873,8 +873,8 @@ function Ht() {
       });
       return;
     }
-    if (!await Lt(i)) {
-      ce({
+    if (!await Ot(i)) {
+      de({
         action: "equipItemResult",
         requestId: i.requestId,
         userId: i.userId,
@@ -883,8 +883,8 @@ function Ht() {
       });
       return;
     }
-    const o = await Ce(String(i.profileId || ""), String(i.slotId || ""), String(i.itemUuid || ""), { openEditor: !1 });
-    ce({
+    const o = await Pe(String(i.profileId || ""), String(i.slotId || ""), String(i.itemUuid || ""), { openEditor: !1 });
+    de({
       action: "equipItemResult",
       requestId: i.requestId,
       userId: i.userId,
@@ -893,13 +893,13 @@ function Ht() {
     });
   });
 }
-function Rt(e, t = null) {
+function Ft(e, t = null) {
   const i = [e == null ? void 0 : e.document, e == null ? void 0 : e.message, e == null ? void 0 : e.object, e];
   for (const n of i)
     if (n != null && n.getFlag && (n != null && n.setFlag)) return n;
   return null;
 }
-async function Ft(e, t) {
+async function Bt(e, t) {
   var a;
   const i = ((a = e == null ? void 0 : e.getFlag) == null ? void 0 : a.call(e, S, "installRequest")) ?? {}, n = {
     requestId: String(i.requestId || t.dataset.hdInstallRequest || ""),
@@ -911,15 +911,15 @@ async function Ft(e, t) {
   };
   return n.requestId && n.profileId && n.slotId && n.itemUuid ? n : null;
 }
-async function Oe(e, t, i) {
+async function He(e, t, i) {
   var r, l, c;
   const n = ((r = e == null ? void 0 : e.getFlag) == null ? void 0 : r.call(e, S, "installRequest")) ?? {};
   await ((l = e == null ? void 0 : e.setFlag) == null ? void 0 : l.call(e, S, "installRequest", { ...n, status: t, resultMessage: i }));
   const a = String((e == null ? void 0 : e.content) || ""), o = `<p class="hd-install-request-status ${t === "approved" ? "is-approved" : "is-rejected"}">${g(i)}</p>`, s = a.replace(/<footer class="hd-chat-actions">[\s\S]*?<\/footer>/, o);
   s !== a && await ((c = e == null ? void 0 : e.update) == null ? void 0 : c.call(e, { content: s }));
 }
-function He(e, t = null) {
-  const i = Q(null, t), n = Rt(e, t);
+function Re(e, t = null) {
+  const i = Z(null, t), n = Ft(e, t);
   !i || !n || i.querySelectorAll("[data-hd-install-request]").forEach((a) => {
     const o = (s, r) => {
       var l;
@@ -929,39 +929,39 @@ function He(e, t = null) {
           (m = (u = ui.notifications) == null ? void 0 : u.warn) == null || m.call(u, "Only the GM can answer ship equipment install requests.");
           return;
         }
-        const d = await Ft(n, a);
+        const d = await Bt(n, a);
         !d || d.status !== "pending" || await r(d);
       });
     };
     o("[data-hd-install-approve]", async (s) => {
       var l, c, d, p;
-      const r = await Ce(s.profileId, s.slotId, s.itemUuid, { openEditor: !1 });
-      await Oe(n, r.ok ? "approved" : "rejected", r.message), r.ok ? (c = (l = ui.notifications) == null ? void 0 : l.info) == null || c.call(l, r.message) : (p = (d = ui.notifications) == null ? void 0 : d.warn) == null || p.call(d, r.message);
+      const r = await Pe(s.profileId, s.slotId, s.itemUuid, { openEditor: !1 });
+      await He(n, r.ok ? "approved" : "rejected", r.message), r.ok ? (c = (l = ui.notifications) == null ? void 0 : l.info) == null || c.call(l, r.message) : (p = (d = ui.notifications) == null ? void 0 : d.warn) == null || p.call(d, r.message);
     }), o("[data-hd-install-reject]", async () => {
       var s, r;
-      await Oe(n, "rejected", "The GM rejected the ship equipment install request."), (r = (s = ui.notifications) == null ? void 0 : s.info) == null || r.call(s, "Ship equipment install request rejected.");
+      await He(n, "rejected", "The GM rejected the ship equipment install request."), (r = (s = ui.notifications) == null ? void 0 : s.info) == null || r.call(s, "Ship equipment install request rejected.");
     });
   });
 }
-async function Pe(e, t, i) {
+async function De(e, t, i) {
   var p, u, m, f, w, h, y, k, C;
   const n = _(e);
-  if (!we(n))
+  if (!ye(n))
     return (u = (p = ui.notifications) == null ? void 0 : p.warn) == null || u.call(p, "Players are not allowed to install equipment on this ship."), !1;
   const a = await P(i);
   if (!a)
     return (f = (m = ui.notifications) == null ? void 0 : m.warn) == null || f.call(m, "Drop a Foundry Item onto the equipment slot."), !1;
   const o = n == null ? void 0 : n.slots.find((E) => E.id === t);
   if (!o) return !1;
-  const s = A(a), r = Ee(N(o), a), l = se(N(o), a, r);
+  const s = A(a), r = Ce(N(o), a), l = re(N(o), a, r);
   if (!l.ok)
     return (h = (w = ui.notifications) == null ? void 0 : w.warn) == null || h.call(w, l.reason ?? "That item is not compatible with this ship slot."), !1;
-  if (!await Tt(N(o), a, !s.enabled)) return !1;
-  if (!((y = game.user) != null && y.isGM)) return Ot(e, t, i);
-  const d = await Ce(e, t, i, { openEditor: !0 });
+  if (!await It(N(o), a, !s.enabled)) return !1;
+  if (!((y = game.user) != null && y.isGM)) return Ht(e, t, i);
+  const d = await Pe(e, t, i, { openEditor: !0 });
   return d.ok || (C = (k = ui.notifications) == null ? void 0 : k.warn) == null || C.call(k, d.message), d.ok;
 }
-async function ye(e, t) {
+async function be(e, t) {
   var a;
   if (!q("remove equipped items")) return !1;
   const i = I(D()), n = (a = i[e]) == null ? void 0 : a.slots.find((o) => o.id === t);
@@ -970,7 +970,7 @@ async function ye(e, t) {
 async function P(e) {
   const t = String(e || "").trim(), i = globalThis.fromUuid;
   if (!t || typeof i != "function") return null;
-  const n = le.get(t);
+  const n = ce.get(t);
   if (n) return n;
   const a = (async () => {
     var s;
@@ -981,11 +981,11 @@ async function P(e) {
       return console.warn(`${S} | Failed to resolve item UUID "${t}".`, r), null;
     }
   })();
-  le.set(t, a);
+  ce.set(t, a);
   const o = await a;
-  return o || le.delete(t), o;
+  return o || ce.delete(t), o;
 }
-function Bt(e) {
+function Nt(e) {
   var t, i, n;
   try {
     const a = globalThis.TextEditor ?? ((i = (t = foundry == null ? void 0 : foundry.applications) == null ? void 0 : t.ux) == null ? void 0 : i.TextEditor);
@@ -998,26 +998,26 @@ function Bt(e) {
     return {};
   }
 }
-function Nt(e) {
+function Ut(e) {
   var i, n, a;
   const t = ((n = (i = e == null ? void 0 : e.system) == null ? void 0 : i.description) == null ? void 0 : n.value) ?? ((a = e == null ? void 0 : e.system) == null ? void 0 : a.description) ?? (e == null ? void 0 : e.description) ?? "";
   return typeof t == "string" ? t.trim() : t != null && t.value ? String(t.value).trim() : "";
 }
-function ct(e) {
+function dt(e) {
   if (!e.enabled) return "";
   const t = [`Ship Equipment: ${e.category}`];
   return e.durability.enabled && e.durability.max > 0 && t.push(`Durability ${e.durability.value}/${e.durability.max}`), e.power.enabled && e.power.draw > 0 && t.push(`Power ${e.power.allocated}/${e.power.draw} ${e.power.online ? "online" : "offline"}`), t.join(" | ");
 }
-function Ut(e) {
+function jt(e) {
   if (!e.enabled) return [];
   const t = [e.category];
   return e.activation.enabled && t.push("Activatable"), e.durability.enabled && t.push("Durability"), e.power.enabled && t.push("Power"), t;
 }
-function jt(e) {
-  const t = e.durability, { isBroken: i, isDamaged: n, value: a, max: o } = ke(e), s = e.power.enabled && !e.power.online, r = e.power.enabled && e.power.online && e.power.draw > 0 && e.power.allocated <= 0, l = e.power.enabled && e.power.online && !r && e.power.allocated < e.power.draw, c = Math.max(0, e.activation.cooldown) * 6e3, d = e.activation.lastActivatedAt + c, p = e.activation.enabled && c > 0 && e.activation.lastActivatedAt > 0 && d > Date.now(), u = p ? Math.max(1, Math.ceil((d - Date.now()) / 6e3)) : 0, m = s || r || l || p || e.activation.blockWhenBroken && i;
+function Gt(e) {
+  const t = e.durability, { isBroken: i, isDamaged: n, value: a, max: o } = qe(e), s = e.power.enabled && !e.power.online, r = e.power.enabled && e.power.online && e.power.draw > 0 && e.power.allocated <= 0, l = e.power.enabled && e.power.online && !r && e.power.allocated < e.power.draw, c = Math.max(0, e.activation.cooldown) * 6e3, d = e.activation.lastActivatedAt + c, p = e.activation.enabled && c > 0 && e.activation.lastActivatedAt > 0 && d > Date.now(), u = p ? Math.max(1, Math.ceil((d - Date.now()) / 6e3)) : 0, m = s || r || l || p || e.activation.blockWhenBroken && i;
   return {
     ...e,
-    badges: Ut(e),
+    badges: jt(e),
     tagsText: e.tags.join(", "),
     hasTags: e.tags.length > 0,
     durability: {
@@ -1046,7 +1046,7 @@ function jt(e) {
     }
   };
 }
-function dt(e) {
+function ut(e) {
   const t = Math.max(0, v(e.powerCapacity, 0)), i = e.slots.reduce((r, l) => {
     var d, p;
     const c = (p = (d = l == null ? void 0 : l.item) == null ? void 0 : d.equipment) == null ? void 0 : p.power;
@@ -1062,7 +1062,7 @@ function dt(e) {
     summary: o ? `${i} / ${t}` : `${i} draw`
   };
 }
-function Gt(e, t) {
+function Vt(e, t) {
   const i = new Map(t.map((a) => [a.id, a])), n = t.filter((a) => {
     var o, s, r;
     return (r = (s = (o = a.item) == null ? void 0 : o.equipment) == null ? void 0 : s.power) == null ? void 0 : r.enabled;
@@ -1110,15 +1110,15 @@ function Gt(e, t) {
     };
   });
 }
-function De(e, t) {
+function Te(e, t) {
   const i = t.map((n) => n.toLowerCase());
   return e.filter((n) => i.some((a) => n.label.toLowerCase().includes(a)));
 }
-function Te(e, t) {
-  return De(e, t)[0] ?? null;
+function Ie(e, t) {
+  return Te(e, t)[0] ?? null;
 }
 function W(e, t, i, n = "Unset", a = t) {
-  const o = Te(e, i);
+  const o = Ie(e, i);
   return {
     label: t,
     value: (o == null ? void 0 : o.value) || n,
@@ -1130,7 +1130,7 @@ function W(e, t, i, n = "Unset", a = t) {
     isConfigured: !!o
   };
 }
-function ut(e, t, i, n) {
+function pt(e, t, i, n) {
   const a = e[0] ?? null;
   return {
     label: t,
@@ -1147,10 +1147,10 @@ function ut(e, t, i, n) {
     hasRelatedStats: e.length > 1
   };
 }
-function Vt(e) {
-  const t = Te(e, ["speed"]), i = De(e, ["max speed", "maximum speed", "top speed", "maximum"]).filter((o) => o.id !== (t == null ? void 0 : t.id)), n = [t, ...i].filter(Boolean);
+function _t(e) {
+  const t = Ie(e, ["speed"]), i = Te(e, ["max speed", "maximum speed", "top speed", "maximum"]).filter((o) => o.id !== (t == null ? void 0 : t.id)), n = [t, ...i].filter(Boolean);
   return {
-    ...ut(n, "Speed", "speed", "fa-gauge-high"),
+    ...pt(n, "Speed", "speed", "fa-gauge-high"),
     metrics: [
       W(e, "Cruise", ["cruise"], "Unset", "Cruise Speed"),
       W(e, "Maximum", ["max speed", "maximum speed", "top speed", "maximum"], "Unset", "Maximum Speed"),
@@ -1158,10 +1158,10 @@ function Vt(e) {
     ]
   };
 }
-function _t(e) {
-  const t = Te(e, ["capacity", "occupancy"]), i = De(e, ["passenger"]).filter((o) => o.id !== (t == null ? void 0 : t.id)), n = [t, ...i].filter(Boolean);
+function zt(e) {
+  const t = Ie(e, ["capacity", "occupancy"]), i = Te(e, ["passenger"]).filter((o) => o.id !== (t == null ? void 0 : t.id)), n = [t, ...i].filter(Boolean);
   return {
-    ...ut(n, "Capacity", "capacity", "fa-users"),
+    ...pt(n, "Capacity", "capacity", "fa-users"),
     metrics: [
       W(e, "Crew", ["crew"]),
       W(e, "Berths", ["berth"]),
@@ -1170,7 +1170,7 @@ function _t(e) {
     ]
   };
 }
-function zt(e) {
+function Yt(e) {
   if (e.brokenSystems > 0 || e.power.isOverBudget && e.underpoweredSystems > 0)
     return {
       level: "critical",
@@ -1199,12 +1199,12 @@ function zt(e) {
     icon: "fa-circle-check"
   };
 }
-function Yt(e) {
+function Wt(e) {
   const t = e.slots.length, i = e.slots.filter((f) => f.item && !f.item.missing).length, n = Math.max(0, t - i), a = e.slots.filter((f) => {
     var w, h;
     return (h = (w = f.item) == null ? void 0 : w.equipment) == null ? void 0 : h.enabled;
   }).map((f) => {
-    const w = f.item.equipment, h = w.power, y = w.durability, k = y.enabled && y.isBroken, C = y.enabled && y.isDamaged, E = h.enabled && h.isOffline, U = h.enabled && h.isNoPower, z = h.enabled && h.isUnderpowered, ee = w.activation.enabled, x = k ? "Broken" : E ? "Offline" : U ? "No Power" : z ? "Low Power" : C ? "Damaged" : "Ready", mt = `is-${x.toLowerCase().replace(/\s+/g, "-")}`;
+    const w = f.item.equipment, h = w.power, y = w.durability, k = y.enabled && y.isBroken, C = y.enabled && y.isDamaged, E = h.enabled && h.isOffline, U = h.enabled && h.isNoPower, z = h.enabled && h.isUnderpowered, te = w.activation.enabled, x = k ? "Broken" : E ? "Offline" : U ? "No Power" : z ? "Low Power" : C ? "Damaged" : "Ready", ht = `is-${x.toLowerCase().replace(/\s+/g, "-")}`;
     return {
       slotId: f.id,
       slotLabel: f.label,
@@ -1212,9 +1212,9 @@ function Yt(e) {
       itemImg: f.item.img,
       category: w.category,
       state: x,
-      stateClass: mt,
+      stateClass: ht,
       icon: k ? "fa-triangle-exclamation" : E ? "fa-power-off" : U ? "fa-battery-empty" : z ? "fa-gauge-simple-low" : C ? "fa-screwdriver-wrench" : "fa-circle-check",
-      canActivate: ee,
+      canActivate: te,
       activationLabel: w.activation.label,
       activationBlocked: w.activation.isBlocked,
       powerEnabled: h.enabled,
@@ -1226,7 +1226,7 @@ function Yt(e) {
       durabilityEnabled: y.enabled,
       durabilityText: y.enabled ? `${y.value} / ${y.max}` : ""
     };
-  }), o = a.filter((f) => f.state === "Broken").length, s = a.filter((f) => f.state === "Damaged").length, r = a.filter((f) => f.state === "Offline").length, l = a.filter((f) => f.state === "Low Power" || f.state === "No Power").length, c = a.filter((f) => f.powerEnabled).length, d = a.filter((f) => f.powerEnabled && f.powerState === "Online").length, p = Vt(e.stats), u = _t(e.stats), m = zt({ power: e.power, systems: a, brokenSystems: o, damagedSystems: s, offlineSystems: r, underpoweredSystems: l });
+  }), o = a.filter((f) => f.state === "Broken").length, s = a.filter((f) => f.state === "Damaged").length, r = a.filter((f) => f.state === "Offline").length, l = a.filter((f) => f.state === "Low Power" || f.state === "No Power").length, c = a.filter((f) => f.powerEnabled).length, d = a.filter((f) => f.powerEnabled && f.powerState === "Online").length, p = _t(e.stats), u = zt(e.stats), m = Yt({ power: e.power, systems: a, brokenSystems: o, damagedSystems: s, offlineSystems: r, underpoweredSystems: l });
   return {
     totalSlots: t,
     equippedSlots: i,
@@ -1253,7 +1253,7 @@ function Yt(e) {
     ]
   };
 }
-function Wt(e) {
+function Xt(e) {
   var i;
   const t = /* @__PURE__ */ new Map();
   for (const n of e) {
@@ -1270,11 +1270,11 @@ function Wt(e) {
     slots: a
   }));
 }
-function Xt(e) {
+function Kt(e) {
   const t = e.filter((i) => i.item);
   return t.length ? ((!O || !t.some((i) => i.id === O)) && (O = t[0].id), t.find((i) => i.id === O) ?? null) : (O = "", null);
 }
-function Kt(e, t) {
+function Jt(e, t) {
   const i = e.filter((n) => {
     var a, o, s;
     return (s = (o = (a = n.item) == null ? void 0 : a.equipment) == null ? void 0 : o.power) == null ? void 0 : s.enabled;
@@ -1301,8 +1301,8 @@ function Kt(e, t) {
     reactorLabel: t.hasCapacity ? `${t.used} / ${t.capacity}` : `${t.used} allocated`
   };
 }
-async function Jt(e) {
-  const t = Number.isFinite(e.anchorX) && Number.isFinite(e.anchorY), i = lt(e), n = {
+async function Qt(e) {
+  const t = Number.isFinite(e.anchorX) && Number.isFinite(e.anchorY), i = ct(e), n = {
     ...e,
     hasAnchor: t,
     compatibilitySummary: i,
@@ -1320,14 +1320,14 @@ async function Jt(e) {
         missing: !0
       }
     };
-  const o = A(a), s = ct(o), r = jt(o), l = r.durability.isBroken ? "is-broken" : r.power.isOffline ? "is-offline" : r.power.isNoPower ? "is-no-power" : r.power.isUnderpowered ? "is-low-power" : r.durability.isDamaged ? "is-damaged" : r.enabled ? "is-online" : "is-untagged";
+  const o = A(a), s = dt(o), r = Gt(o), l = r.durability.isBroken ? "is-broken" : r.power.isOffline ? "is-offline" : r.power.isNoPower ? "is-no-power" : r.power.isUnderpowered ? "is-low-power" : r.durability.isDamaged ? "is-damaged" : r.enabled ? "is-online" : "is-untagged";
   return {
     ...n,
     item: {
       name: a.name ?? "Unnamed Item",
       img: a.img || "icons/svg/item-bag.svg",
       status: s,
-      description: Nt(a),
+      description: Ut(a),
       uuid: a.uuid,
       equipment: r
     },
@@ -1336,7 +1336,7 @@ async function Jt(e) {
     statusLabel: r.durability.isBroken ? "Broken" : r.power.state || r.durability.state
   };
 }
-async function Qt() {
+async function Zt() {
   var r, l, c;
   const e = b();
   let t = null;
@@ -1344,7 +1344,7 @@ async function Qt() {
   let n = i, a = i;
   if (e) {
     n = i || e.permissions.allowPlayerEquip, a = i || e.permissions.allowPlayerActivate;
-    const d = await Promise.all(e.slots.map(Jt)), p = dt({ ...e, slots: d }), u = Yt({ slots: d, power: p, stats: e.stats }), m = new Set([
+    const d = await Promise.all(e.slots.map(Qt)), p = ut({ ...e, slots: d }), u = Wt({ slots: d, power: p, stats: e.stats }), m = new Set([
       (l = u.speed.stat) == null ? void 0 : l.id,
       (c = u.capacity.stat) == null ? void 0 : c.id,
       ...u.speed.relatedStats.map((h) => h.id),
@@ -1362,7 +1362,7 @@ async function Qt() {
       ...h,
       isActive: h.page === $ || h.page === "systems" && $ === "equipment" && h.label === "Systems"
     }));
-    const f = Xt(d), w = d.map((h) => ({
+    const f = Kt(d), w = d.map((h) => ({
       ...h,
       isSelectedEquipment: h.id === O
     }));
@@ -1370,29 +1370,29 @@ async function Qt() {
       ...e,
       slots: w,
       power: p,
-      powerPresets: Gt(e, d),
+      powerPresets: Vt(e, d),
       hasPowerPresets: e.powerPresets.length > 0,
       dashboard: u,
       additionalStats: e.stats.filter((h) => !m.has(h.id)),
       hasAdditionalStats: e.stats.some((h) => !m.has(h.id)),
-      equipmentCategories: Wt(w),
+      equipmentCategories: Xt(w),
       selectedEquipmentSlot: f,
       hasSelectedEquipment: !!f,
-      powerGrid: Kt(d, p)
+      powerGrid: Jt(d, p)
     };
   }
-  const o = Xe().map((d) => ({
+  const o = Ke().map((d) => ({
     ...d,
     isSelected: d.id === L
   }));
-  return !new Set(fe.map((d) => d.id)).has($) && $ !== "equipment" && ($ = "overview"), {
+  return !new Set(me.map((d) => d.id)).has($) && $ !== "equipment" && ($ = "overview"), {
     canEdit: i,
     canEquip: n,
     canActivateSystems: a,
     hasProfiles: o.length > 0,
     profiles: o,
     selectedProfile: t,
-    pages: fe.map((d) => ({
+    pages: me.map((d) => ({
       ...d,
       isActive: d.id === $
     })),
@@ -1404,22 +1404,22 @@ async function Qt() {
     isDamage: $ === "damage",
     isSpeed: $ === "speed",
     isCapacity: $ === "capacity",
-    categories: Z()
+    categories: ee()
   };
 }
-function Q(e, t = null) {
+function Z(e, t = null) {
   var i;
   return t != null && t[0] ? t[0] : t instanceof HTMLElement ? t : (i = e == null ? void 0 : e.element) != null && i[0] ? e.element[0] : (e == null ? void 0 : e.element) ?? null;
 }
 function j() {
   B != null && B.rendered && B.requestRender();
 }
-function Ie(e) {
+function xe(e) {
   var n, a;
   const t = (e == null ? void 0 : e[0]) ?? e, i = ((n = t == null ? void 0 : t.querySelector) == null ? void 0 : n.call(t, "form")) ?? ((a = t == null ? void 0 : t.closest) == null ? void 0 : a.call(t, "form"));
   return Object.fromEntries(new FormData(i).entries());
 }
-function Zt(e) {
+function ei(e) {
   var o, s;
   const t = (e == null ? void 0 : e[0]) ?? e, i = ((o = t == null ? void 0 : t.querySelector) == null ? void 0 : o.call(t, "form")) ?? ((s = t == null ? void 0 : t.closest) == null ? void 0 : s.call(t, "form")), n = new FormData(i), a = String(n.get("category") || "");
   return {
@@ -1428,10 +1428,10 @@ function Zt(e) {
     category: a,
     description: String(n.get("description") || ""),
     requiredCategory: String(n.get("requiredCategory") || ""),
-    requiredTags: _e(n.get("requiredTags"))
+    requiredTags: ze(n.get("requiredTags"))
   };
 }
-function ei(e) {
+function ti(e) {
   var a, o;
   const t = (e == null ? void 0 : e[0]) ?? e, i = ((a = t == null ? void 0 : t.querySelector) == null ? void 0 : a.call(t, "form")) ?? ((o = t == null ? void 0 : t.closest) == null ? void 0 : o.call(t, "form")), n = new FormData(i);
   return {
@@ -1440,9 +1440,9 @@ function ei(e) {
     allowPlayerActivate: F(n, "allowPlayerActivate")
   };
 }
-function ti(e) {
+function ii(e) {
   if (!q("set HoloDock player rights")) return;
-  const t = Ve(e.permissions), i = (n) => n ? "checked" : "";
+  const t = _e(e.permissions), i = (n) => n ? "checked" : "";
   new Dialog({
     title: `Player Rights: ${e.name}`,
     content: `
@@ -1466,7 +1466,7 @@ function ti(e) {
       save: {
         icon: '<i class="fa-solid fa-floppy-disk"></i>',
         label: "Save",
-        callback: (n) => Ze(e.id, ei(n))
+        callback: (n) => et(e.id, ti(n))
       },
       cancel: {
         icon: '<i class="fa-solid fa-xmark"></i>',
@@ -1479,11 +1479,11 @@ function ti(e) {
     width: 460
   }).render(!0);
 }
-function Re(e = {}) {
+function Fe(e = {}) {
   if (!q("edit equipment slots")) return;
   const t = b();
   if (!t) return;
-  const i = N({ label: "New Slot", category: G[0], ...e }), n = Z().map((a) => `<option value="${g(a)}">`).join("");
+  const i = N({ label: "New Slot", category: G[0], ...e }), n = ee().map((a) => `<option value="${g(a)}">`).join("");
   new Dialog({
     title: e.id ? "Edit Equipment Slot" : "Add Equipment Slot",
     content: `
@@ -1515,7 +1515,7 @@ function Re(e = {}) {
       save: {
         icon: '<i class="fa-solid fa-floppy-disk"></i>',
         label: "Save",
-        callback: (a) => ot(t.id, Zt(a))
+        callback: (a) => st(t.id, ei(a))
       },
       cancel: {
         icon: '<i class="fa-solid fa-xmark"></i>',
@@ -1528,7 +1528,7 @@ function Re(e = {}) {
     width: 480
   }).render(!0);
 }
-function de(e = {}) {
+function ue(e = {}) {
   if (!q("edit ship statistics")) return;
   const t = b();
   if (!t) return;
@@ -1556,7 +1556,7 @@ function de(e = {}) {
       save: {
         icon: '<i class="fa-solid fa-floppy-disk"></i>',
         label: "Save",
-        callback: (n) => $e(t.id, Ie(n))
+        callback: (n) => Ee(t.id, xe(n))
       },
       cancel: {
         icon: '<i class="fa-solid fa-xmark"></i>',
@@ -1569,7 +1569,7 @@ function de(e = {}) {
     width: 420
   }).render(!0);
 }
-function ii() {
+function ni() {
   if (!q("save power presets")) return;
   const e = b();
   e && new Dialog({
@@ -1594,8 +1594,8 @@ function ii() {
         icon: '<i class="fa-solid fa-floppy-disk"></i>',
         label: "Save Mode",
         callback: (t) => {
-          const i = Ie(t);
-          return et(e.id, i.name || "Power Mode");
+          const i = xe(t);
+          return tt(e.id, i.name || "Power Mode");
         }
       },
       cancel: {
@@ -1612,10 +1612,10 @@ function ii() {
 function F(e, t) {
   return e.get(t) === "on";
 }
-function ni(e) {
+function ai(e) {
   var o, s;
   const t = (e == null ? void 0 : e[0]) ?? e, i = ((o = t == null ? void 0 : t.querySelector) == null ? void 0 : o.call(t, "form")) ?? ((s = t == null ? void 0 : t.closest) == null ? void 0 : s.call(t, "form")), n = new FormData(i), a = String(n.get("tags") || "").split(",").map((r) => r.trim()).filter(Boolean);
-  return oe({
+  return se({
     enabled: F(n, "enabled"),
     category: String(n.get("category") || ""),
     tags: a,
@@ -1645,9 +1645,9 @@ function ni(e) {
 function X(e) {
   if (!q("tag ship equipment") || !e) return;
   const t = String(e.uuid ?? e.id ?? e.name ?? "item"), i = Date.now();
-  if (t === Me && i - Le < 500) return;
-  Me = t, Le = i;
-  const n = A(e), a = Z().map((s) => `<option value="${g(s)}">`).join(""), o = (s) => s ? "checked" : "";
+  if (t === Le && i - Oe < 500) return;
+  Le = t, Oe = i;
+  const n = A(e), a = ee().map((s) => `<option value="${g(s)}">`).join(""), o = (s) => s ? "checked" : "";
   new Dialog({
     title: `Ship Equipment: ${e.name ?? "Item"}`,
     content: `
@@ -1747,7 +1747,7 @@ function X(e) {
       save: {
         icon: '<i class="fa-solid fa-floppy-disk"></i>',
         label: "Save",
-        callback: (s) => V(e, ni(s))
+        callback: (s) => V(e, ai(s))
       },
       cancel: {
         icon: '<i class="fa-solid fa-xmark"></i>',
@@ -1760,7 +1760,7 @@ function X(e) {
     width: 520
   }).render(!0);
 }
-function ai(e) {
+function oi(e) {
   if (!q("edit ship equipment durability")) return;
   const t = A(e);
   !t.enabled || !t.durability.enabled || new Dialog({
@@ -1778,8 +1778,8 @@ function ai(e) {
         icon: '<i class="fa-solid fa-floppy-disk"></i>',
         label: "Save",
         callback: (i) => {
-          const n = Ie(i);
-          return ae(e, v(n.value, t.durability.value));
+          const n = xe(i);
+          return oe(e, v(n.value, t.durability.value));
         }
       },
       cancel: {
@@ -1793,7 +1793,7 @@ function ai(e) {
     width: 360
   }).render(!0);
 }
-function oi() {
+function si() {
   const e = game.items;
   if (!e) return [];
   if (Array.isArray(e)) return e;
@@ -1804,19 +1804,19 @@ function oi() {
     return [];
   }
 }
-function si(e) {
-  return oi().filter((t) => {
+function ri(e) {
+  return si().filter((t) => {
     var i;
     return (t == null ? void 0 : t.documentName) === "Item" || ((i = t == null ? void 0 : t.constructor) == null ? void 0 : i.name) === "Item";
   }).map((t) => {
-    const i = A(t), n = se(e, t);
+    const i = A(t), n = re(e, t);
     return {
       id: String(t.id ?? t.uuid ?? T("item")),
       uuid: String(t.uuid ?? ""),
       name: String(t.name ?? "Unnamed Item"),
       img: String(t.img || "icons/svg/item-bag.svg"),
       type: String(t.type || "Item"),
-      status: ct(i),
+      status: dt(i),
       compatible: n.ok,
       reason: n.reason ?? "",
       shipEquipment: i.enabled,
@@ -1825,7 +1825,7 @@ function si(e) {
     };
   }).filter((t) => t.uuid).sort((t, i) => t.compatible !== i.compatible ? t.compatible ? -1 : 1 : t.shipEquipment !== i.shipEquipment ? t.shipEquipment ? -1 : 1 : t.name.localeCompare(i.name));
 }
-function Fe(e) {
+function Be(e) {
   return `
     <button type="button" class="hd-equipment-pick ${e.compatible ? "" : "is-incompatible"}" data-hd-pick-item="${g(e.uuid)}">
       <img src="${g(e.img)}" alt="">
@@ -1838,23 +1838,23 @@ function Fe(e) {
     </button>
   `;
 }
-function ri(e, t) {
+function li(e, t) {
   if (!q("equip items")) return;
   const i = _(e), n = i == null ? void 0 : i.slots.find((c) => c.id === t);
   if (!i || !n) return;
-  const a = N(n), o = si(a), s = o.filter((c) => c.compatible), r = o.filter((c) => !c.compatible), l = new Dialog({
+  const a = N(n), o = ri(a), s = o.filter((c) => c.compatible), r = o.filter((c) => !c.compatible), l = new Dialog({
     title: `Choose Equipment: ${n.label}`,
     content: `
       <section class="hd-equipment-browser">
-        <p class="hd-muted">${g(lt(a) || "No slot compatibility rules set.")}</p>
+        <p class="hd-muted">${g(ct(a) || "No slot compatibility rules set.")}</p>
         <div class="hd-equipment-pick-list">
-          ${s.length ? s.map(Fe).join("") : '<p class="hd-muted">No compatible world items found.</p>'}
+          ${s.length ? s.map(Be).join("") : '<p class="hd-muted">No compatible world items found.</p>'}
         </div>
         ${r.length ? `
           <details class="hd-incompatible-equipment">
             <summary>${r.length} incompatible item${r.length === 1 ? "" : "s"}</summary>
             <div class="hd-equipment-pick-list">
-              ${r.map(Fe).join("")}
+              ${r.map(Be).join("")}
             </div>
           </details>
         ` : ""}
@@ -1873,16 +1873,16 @@ function ri(e, t) {
     height: 640
   });
   l.render(!0), window.setTimeout(() => {
-    const c = Q(l);
+    const c = Z(l);
     c == null || c.querySelectorAll("[data-hd-pick-item]").forEach((d) => {
       d.addEventListener("click", async () => {
         const p = d.dataset.hdPickItem ?? "";
-        await Pe(i.id, n.id, p) && l.close();
+        await De(i.id, n.id, p) && l.close();
       });
     });
   }, 0);
 }
-function re(e) {
+function le(e) {
   var i, n, a;
   const t = [
     e == null ? void 0 : e.document,
@@ -1898,10 +1898,10 @@ function re(e) {
   }
   return null;
 }
-function te(e, t) {
+function ie(e, t) {
   var a;
   if (!((a = game.user) != null && a.isGM)) return;
-  const i = re(e);
+  const i = le(e);
   if (!i || !Array.isArray(t) || t.some((o) => (o == null ? void 0 : o.class) === "hd-edit-equipment" || (o == null ? void 0 : o.className) === "hd-edit-equipment")) return;
   const n = {
     label: "Ship Equipment",
@@ -1914,10 +1914,10 @@ function te(e, t) {
   };
   t.unshift(n);
 }
-function li(e, t) {
+function ci(e, t) {
   var n;
   if (!((n = game.user) != null && n.isGM)) return;
-  const i = re(e);
+  const i = le(e);
   !i || !Array.isArray(t) || t.some((a) => (a == null ? void 0 : a.action) === "holodockShipEquipment" || (a == null ? void 0 : a.class) === "hd-edit-equipment") || t.unshift({
     action: "holodockShipEquipment",
     label: "Ship Equipment",
@@ -1930,9 +1930,9 @@ function li(e, t) {
     onclick: () => X(i)
   });
 }
-function pt(e, t = null) {
+function ft(e, t = null) {
   var r, l, c, d, p, u, m;
-  const i = Q(null, t), n = ((r = e == null ? void 0 : e.element) == null ? void 0 : r[0]) ?? (e == null ? void 0 : e.element) ?? ((l = e == null ? void 0 : e._element) == null ? void 0 : l[0]) ?? (e == null ? void 0 : e._element), a = ((c = e == null ? void 0 : e.window) == null ? void 0 : c.element) ?? ((d = e == null ? void 0 : e.window) == null ? void 0 : d.frame), o = e != null && e.id && ((p = globalThis.CSS) != null && p.escape) ? CSS.escape(e.id) : "", s = [
+  const i = Z(null, t), n = ((r = e == null ? void 0 : e.element) == null ? void 0 : r[0]) ?? (e == null ? void 0 : e.element) ?? ((l = e == null ? void 0 : e._element) == null ? void 0 : l[0]) ?? (e == null ? void 0 : e._element), a = ((c = e == null ? void 0 : e.window) == null ? void 0 : c.element) ?? ((d = e == null ? void 0 : e.window) == null ? void 0 : d.frame), o = e != null && e.id && ((p = globalThis.CSS) != null && p.escape) ? CSS.escape(e.id) : "", s = [
     a,
     (u = n == null ? void 0 : n.closest) == null ? void 0 : u.call(n, ".application, .app, .window-app"),
     n,
@@ -1945,12 +1945,12 @@ function pt(e, t = null) {
     if (f instanceof HTMLElement) return f;
   return null;
 }
-function ie(e, t = null) {
+function ne(e, t = null) {
   var l;
   if (!((l = game.user) != null && l.isGM)) return;
-  const i = re(e);
+  const i = le(e);
   if (!i) return;
-  const n = pt(e, t);
+  const n = ft(e, t);
   if (!n || n.querySelector(".hd-edit-equipment, [data-hd-edit-equipment]")) return;
   const a = n.querySelector(".window-header, header.window-header, .app-header, header");
   if (!a) return;
@@ -1961,18 +1961,18 @@ function ie(e, t = null) {
   const s = a.querySelector(".window-controls, .header-controls, .window-header-buttons, .window-buttons, menu"), r = a.querySelector(".close, [data-action='close']");
   s ? s.prepend(o) : r ? a.insertBefore(o, r) : a.append(o);
 }
-function ci(e, t = null) {
-  ie(e, t), window.setTimeout(() => ie(e, t), 0), window.setTimeout(() => ie(e, t), 100), window.setTimeout(() => ie(e, t), 300);
+function di(e, t = null) {
+  ne(e, t), window.setTimeout(() => ne(e, t), 0), window.setTimeout(() => ne(e, t), 100), window.setTimeout(() => ne(e, t), 300);
 }
-function J(e, t = null) {
-  ci(e, t);
-  const i = pt(e, t), n = re(e);
+function Q(e, t = null) {
+  di(e, t);
+  const i = ft(e, t), n = le(e);
   !i || !n || i.dataset.hdEquipmentHeaderListener === "true" || (i.dataset.hdEquipmentHeaderListener = "true", i.addEventListener("click", (a) => {
     var s, r;
     (r = (s = a.target) == null ? void 0 : s.closest) != null && r.call(s, "[data-action='holodockShipEquipment'], .hd-edit-equipment") && (a.preventDefault(), a.stopPropagation(), X(n));
   }));
 }
-class di extends At {
+class pi extends $t {
   constructor() {
     super(...arguments);
     K(this, "linkingSlotId", "");
@@ -1984,7 +1984,7 @@ class di extends At {
       id: "holodock",
       title: "HoloDock - Ship Loadout",
       classes: ["holodock-window"],
-      template: Ne,
+      template: Ue,
       popOut: !0,
       resizable: !0,
       width: 1280,
@@ -1992,7 +1992,7 @@ class di extends At {
     });
   }
   async getData() {
-    return Qt();
+    return Zt();
   }
   requestRender() {
     if (!this.rendered || this.renderFrame) return;
@@ -2004,13 +2004,13 @@ class di extends At {
   activateListeners(i) {
     var a, o;
     super.activateListeners(i);
-    const n = Q(this, i);
+    const n = Z(this, i);
     n && ((a = n.querySelector("[data-hd-profile-select]")) == null || a.addEventListener("change", (s) => {
-      L = s.currentTarget.value, O = "", Ae(L).finally(() => this.requestRender());
+      L = s.currentTarget.value, O = "", $e(L).finally(() => this.requestRender());
     }), n.querySelectorAll("[data-hd-page]").forEach((s) => {
       s.addEventListener("click", (r) => {
         const l = r.currentTarget.dataset.hdPage ?? "overview";
-        fe.some((c) => c.id === l) && ($ = l, this.requestRender());
+        me.some((c) => c.id === l) && ($ = l, this.requestRender());
       });
     }), n.querySelectorAll("[data-hd-select-equipment]").forEach((s) => {
       s.addEventListener("click", (r) => {
@@ -2022,31 +2022,31 @@ class di extends At {
       const r = b();
       if (!r) return;
       const l = Object.fromEntries(new FormData(s.currentTarget).entries());
-      await Qe(r.id, l);
+      await Ze(r.id, l);
     }), n.querySelectorAll("[data-hd-action]").forEach((s) => {
       s.addEventListener("click", async (r) => {
         const l = r.currentTarget.dataset.hdAction, c = b();
-        l === "create-profile" && await Je(), l === "delete-profile" && await nt(c == null ? void 0 : c.id), l === "create-slot" && Re(), l === "create-stat" && de(), l === "browse-image" && this.browseShipImage(), l === "save-power-preset" && ii(), l === "profile-permissions" && c && ti(c);
+        l === "create-profile" && await Qe(), l === "delete-profile" && await at(c == null ? void 0 : c.id), l === "create-slot" && Fe(), l === "create-stat" && ue(), l === "browse-image" && this.browseShipImage(), l === "save-power-preset" && ni(), l === "profile-permissions" && c && ii(c);
       });
     }), n.querySelectorAll("[data-hd-apply-power-preset]").forEach((s) => {
       s.addEventListener("click", async (r) => {
         const l = b(), c = r.currentTarget.dataset.hdApplyPowerPreset ?? "";
-        l && await it(l.id, c);
+        l && await nt(l.id, c);
       });
     }), n.querySelectorAll("[data-hd-delete-power-preset]").forEach((s) => {
       s.addEventListener("click", async (r) => {
         const l = b(), c = r.currentTarget.dataset.hdDeletePowerPreset ?? "";
-        l && await tt(l.id, c);
+        l && await it(l.id, c);
       });
     }), n.querySelectorAll("[data-hd-edit-stat]").forEach((s) => {
       s.addEventListener("click", (r) => {
         const l = b(), c = l == null ? void 0 : l.stats.find((d) => d.id === r.currentTarget.dataset.hdEditStat);
-        c && de(c);
+        c && ue(c);
       });
     }), n.querySelectorAll("[data-hd-add-stat-label]").forEach((s) => {
       s.addEventListener("click", (r) => {
         const l = r.currentTarget.dataset.hdAddStatLabel ?? "New Statistic";
-        de({ label: l, value: "", note: "" });
+        ue({ label: l, value: "", note: "" });
       });
     }), n.querySelectorAll("[data-hd-stat-value]").forEach((s) => {
       const r = async (l) => {
@@ -2054,7 +2054,7 @@ class di extends At {
         if (d.dataset.hdSavingValue !== "true" && c && !(!d.dataset.hdStatValue && d.value.trim() === "")) {
           d.dataset.hdSavingValue = "true";
           try {
-            const p = d.dataset.hdStatNote || "", u = await $e(c.id, {
+            const p = d.dataset.hdStatNote || "", u = await Ee(c.id, {
               id: d.dataset.hdStatValue || void 0,
               label: d.dataset.hdStatLabel || "Ship Statistic",
               value: d.value,
@@ -2070,22 +2070,22 @@ class di extends At {
     }), n.querySelectorAll("[data-hd-delete-stat]").forEach((s) => {
       s.addEventListener("click", async (r) => {
         const l = b(), c = r.currentTarget.dataset.hdDeleteStat ?? "";
-        l && await at(l.id, c);
+        l && await ot(l.id, c);
       });
     }), n.querySelectorAll("[data-hd-edit-slot]").forEach((s) => {
       s.addEventListener("click", (r) => {
         const l = b(), c = l == null ? void 0 : l.slots.find((d) => d.id === r.currentTarget.dataset.hdEditSlot);
-        c && Re(c);
+        c && Fe(c);
       });
     }), n.querySelectorAll("[data-hd-delete-slot]").forEach((s) => {
       s.addEventListener("click", async (r) => {
         const l = b(), c = r.currentTarget.dataset.hdDeleteSlot ?? "";
-        l && await st(l.id, c);
+        l && await rt(l.id, c);
       });
     }), n.querySelectorAll("[data-hd-browse-equipment]").forEach((s) => {
       s.addEventListener("click", (r) => {
         const l = b(), c = r.currentTarget.dataset.hdBrowseEquipment ?? "";
-        l && ri(l.id, c);
+        l && li(l.id, c);
       });
     }), n.querySelectorAll("[data-hd-open-item]").forEach((s) => {
       s.addEventListener("click", async (r) => {
@@ -2095,9 +2095,9 @@ class di extends At {
       });
     }), n.querySelectorAll("[data-hd-activate-equipment]").forEach((s) => {
       s.addEventListener("click", async (r) => {
-        var u, m, f, w, h, y, k, C, E, U, z, ee;
+        var u, m, f, w, h, y, k, C, E, U, z, te;
         const l = b(), c = r.currentTarget.dataset.hdActivateEquipment ?? "", d = l == null ? void 0 : l.slots.find((x) => x.id === c), p = await P((d == null ? void 0 : d.itemUuid) ?? "");
-        if (!It(l)) {
+        if (!xt(l)) {
           (m = (u = ui.notifications) == null ? void 0 : u.warn) == null || m.call(u, "Players have read-only access to this ship.");
           return;
         }
@@ -2106,10 +2106,10 @@ class di extends At {
           return;
         }
         try {
-          const x = await Ye(p, { profile: l, slot: d });
+          const x = await We(p, { profile: l, slot: d });
           x.blocked || !x.ok ? (y = (h = ui.notifications) == null ? void 0 : h.warn) == null || y.call(h, x.message) : x.handled ? x.message && ((U = (E = ui.notifications) == null ? void 0 : E.info) == null || U.call(E, x.message)) : (C = (k = ui.notifications) == null ? void 0 : k.info) == null || C.call(k, x.message);
         } catch (x) {
-          console.warn(`${S} | Failed to activate ship equipment.`, x), (ee = (z = ui.notifications) == null ? void 0 : z.warn) == null || ee.call(z, "HoloDock could not activate that equipment. Check the console for details.");
+          console.warn(`${S} | Failed to activate ship equipment.`, x), (te = (z = ui.notifications) == null ? void 0 : z.warn) == null || te.call(z, "HoloDock could not activate that equipment. Check the console for details.");
         }
       });
     }), n.querySelectorAll("[data-hd-durability-adjust]").forEach((s) => {
@@ -2121,13 +2121,13 @@ class di extends At {
           return;
         }
         const u = A(p);
-        !u.enabled || !u.durability.enabled || await ae(p, u.durability.value + v(c.dataset.hdDurabilityDelta, 0));
+        !u.enabled || !u.durability.enabled || await oe(p, u.durability.value + v(c.dataset.hdDurabilityDelta, 0));
       });
     }), n.querySelectorAll("[data-hd-durability-set]").forEach((s) => {
       s.addEventListener("click", async (r) => {
         var p, u;
         const l = b(), c = l == null ? void 0 : l.slots.find((m) => m.id === r.currentTarget.dataset.hdDurabilitySet), d = await P((c == null ? void 0 : c.itemUuid) ?? "");
-        d ? ai(d) : (u = (p = ui.notifications) == null ? void 0 : p.warn) == null || u.call(p, "That ship equipment could not be found.");
+        d ? oi(d) : (u = (p = ui.notifications) == null ? void 0 : p.warn) == null || u.call(p, "That ship equipment could not be found.");
       });
     }), n.querySelectorAll("[data-hd-durability-value]").forEach((s) => {
       s.addEventListener("change", async (r) => {
@@ -2137,7 +2137,7 @@ class di extends At {
           (m = (u = ui.notifications) == null ? void 0 : u.warn) == null || m.call(u, "That ship equipment could not be found.");
           return;
         }
-        await ae(p, v(c.value, 0));
+        await oe(p, v(c.value, 0));
       });
     }), n.querySelectorAll("[data-hd-power-toggle]").forEach((s) => {
       s.addEventListener("click", async (r) => {
@@ -2148,7 +2148,7 @@ class di extends At {
           return;
         }
         const u = A(p);
-        !u.enabled || !u.power.enabled || await ze(p, c.dataset.hdPowerOnline === "true");
+        !u.enabled || !u.power.enabled || await Ye(p, c.dataset.hdPowerOnline === "true");
       });
     }), n.querySelectorAll("[data-hd-power-adjust]").forEach((s) => {
       s.addEventListener("click", async (r) => {
@@ -2159,7 +2159,7 @@ class di extends At {
           return;
         }
         const u = A(p);
-        !u.enabled || !u.power.enabled || await me(p, u.power.allocated + v(c.dataset.hdPowerDelta, 0));
+        !u.enabled || !u.power.enabled || await he(p, u.power.allocated + v(c.dataset.hdPowerDelta, 0));
       });
     }), n.querySelectorAll("[data-hd-power-allocation]").forEach((s) => {
       s.addEventListener("change", async (r) => {
@@ -2169,12 +2169,12 @@ class di extends At {
           (m = (u = ui.notifications) == null ? void 0 : u.warn) == null || m.call(u, "That ship equipment could not be found.");
           return;
         }
-        await me(p, v(c.value, 0));
+        await he(p, v(c.value, 0));
       });
     }), n.querySelectorAll("[data-hd-remove-item]").forEach((s) => {
       s.addEventListener("click", async (r) => {
         const l = b(), c = r.currentTarget.dataset.hdRemoveItem ?? "";
-        l && await ye(l.id, c);
+        l && await be(l.id, c);
       });
     }), this.activateSlotDrops(n), this.activateSlotAnchors(n), window.requestAnimationFrame(() => this.syncShipLinks(n)), window.setTimeout(() => this.syncShipLinks(n), 100));
   }
@@ -2182,24 +2182,24 @@ class di extends At {
     i.querySelectorAll("[data-hd-slot-id]").forEach((n) => {
       n.addEventListener("dragover", (a) => {
         const o = b(), s = n.dataset.hdSlotId ?? "", r = o == null ? void 0 : o.slots.find((l) => l.id === s);
-        !o || !we(o) || r != null && r.itemUuid || (a.preventDefault(), n.classList.add("is-drop-hover"));
+        !o || !ye(o) || r != null && r.itemUuid || (a.preventDefault(), n.classList.add("is-drop-hover"));
       }), n.addEventListener("dragleave", () => n.classList.remove("is-drop-hover")), n.addEventListener("drop", async (a) => {
         var d, p;
         n.classList.remove("is-drop-hover"), a.preventDefault();
         const o = b(), s = n.dataset.hdSlotId ?? "", r = o == null ? void 0 : o.slots.find((u) => u.id === s);
-        if (!o || !we(o) || r != null && r.itemUuid) return;
-        const l = Bt(a), c = l.uuid ?? l.documentUuid ?? l.itemUuid ?? "";
+        if (!o || !ye(o) || r != null && r.itemUuid) return;
+        const l = Nt(a), c = l.uuid ?? l.documentUuid ?? l.itemUuid ?? "";
         if (!o || !c) {
           (p = (d = ui.notifications) == null ? void 0 : d.warn) == null || p.call(d, "Drop a Foundry Item onto an equipment slot.");
           return;
         }
-        await Pe(o.id, s, c);
+        await De(o.id, s, c);
       }), n.addEventListener("contextmenu", async (a) => {
         var r;
         if (!((r = game.user) != null && r.isGM)) return;
         a.preventDefault();
         const o = b(), s = n.dataset.hdSlotId ?? "";
-        o && await ye(o.id, s);
+        o && await be(o.id, s);
       });
     });
   }
@@ -2214,14 +2214,14 @@ class di extends At {
     }), i.querySelectorAll("[data-hd-clear-link]").forEach((r) => {
       r.addEventListener("click", async () => {
         const l = b(), c = r.dataset.hdClearLink ?? "";
-        l && await rt(l.id, c);
+        l && await lt(l.id, c);
       });
     }), n.addEventListener("click", async (r) => {
       var p;
       if (!((p = game.user) != null && p.isGM) || !this.linkingSlotId) return;
       r.preventDefault();
       const l = b(), c = this.getImageAnchorPoint(n, r.clientX, r.clientY), d = this.linkingSlotId;
-      this.linkingSlotId = "", i.classList.remove("is-linking-slot"), l && await ge(l.id, d, c.x, c.y);
+      this.linkingSlotId = "", i.classList.remove("is-linking-slot"), l && await we(l.id, d, c.x, c.y);
     }), i.querySelectorAll("[data-hd-anchor-slot]").forEach((r) => {
       r.addEventListener("click", (l) => {
         var d;
@@ -2244,7 +2244,7 @@ class di extends At {
             return;
           }
           const y = b(), k = this.getImageAnchorPoint(n, h.clientX, h.clientY);
-          y && await ge(y.id, c, k.x, k.y);
+          y && await we(y.id, c, k.x, k.y);
         };
         window.addEventListener("pointermove", m), window.addEventListener("pointerup", f);
       });
@@ -2303,7 +2303,7 @@ class di extends At {
   browseShipImage() {
     var a, o;
     if (!q("choose ship images")) return;
-    const i = Q(this), n = i == null ? void 0 : i.querySelector("[data-hd-profile-form] input[name='image']");
+    const i = Z(this), n = i == null ? void 0 : i.querySelector("[data-hd-profile-form] input[name='image']");
     if (!n || typeof FilePicker > "u") {
       (o = (a = ui.notifications) == null ? void 0 : a.warn) == null || o.call(a, "Foundry FilePicker is not available.");
       return;
@@ -2321,11 +2321,13 @@ class di extends At {
     return this.renderFrame && ((globalThis.cancelAnimationFrame ?? window.clearTimeout)(this.renderFrame), this.renderFrame = void 0), (n = this.linkResizeObserver) == null || n.disconnect(), this.linkResizeObserver = void 0, B = null, super.close(i);
   }
 }
-async function ft() {
-  return B || (B = new di()), await B.render(!0), B;
+async function mt() {
+  return J || (J = (async () => (B || (B = new pi()), await B.render(!0), B))().finally(() => {
+    J = null;
+  }), J);
 }
-function pi() {
-  game.settings.register(S, be, {
+function fi() {
+  game.settings.register(S, ve, {
     name: "HoloDock Ship Profiles",
     hint: "World-level ship profile and loadout data.",
     scope: "world",
@@ -2333,7 +2335,7 @@ function pi() {
     type: Object,
     default: {},
     onChange: j
-  }), game.settings.register(S, ve, {
+  }), game.settings.register(S, Se, {
     name: "HoloDock Slot Categories",
     hint: "Reusable equipment slot categories for HoloDock.",
     scope: "world",
@@ -2341,7 +2343,7 @@ function pi() {
     type: Array,
     default: G,
     onChange: j
-  }), game.settings.register(S, Se, {
+  }), game.settings.register(S, ke, {
     name: "HoloDock Default Ship Profile",
     hint: "The ship profile this user opens by default.",
     scope: "client",
@@ -2351,47 +2353,47 @@ function pi() {
     onChange: j
   });
 }
-function fi() {
+function mi() {
   const e = {
-    open: ft,
-    getProfiles: We,
+    open: mt,
+    getProfiles: Xe,
     getProfile: _,
-    createProfile: Je,
-    updateProfileMetadata: Qe,
-    updateProfilePermissions: Ze,
-    deleteProfile: nt,
-    capturePowerPreset: et,
-    applyPowerPreset: it,
-    deletePowerPreset: tt,
-    upsertSlot: ot,
-    deleteSlot: st,
-    upsertStat: $e,
-    deleteStat: at,
-    setSlotAnchor: ge,
-    clearSlotAnchor: rt,
-    equipItem: Pe,
-    unequipItem: ye,
-    getCategories: Z,
-    getShipPowerBudget: dt,
+    createProfile: Qe,
+    updateProfileMetadata: Ze,
+    updateProfilePermissions: et,
+    deleteProfile: at,
+    capturePowerPreset: tt,
+    applyPowerPreset: nt,
+    deletePowerPreset: it,
+    upsertSlot: st,
+    deleteSlot: rt,
+    upsertStat: Ee,
+    deleteStat: ot,
+    setSlotAnchor: we,
+    clearSlotAnchor: lt,
+    equipItem: De,
+    unequipItem: be,
+    getCategories: ee,
+    getShipPowerBudget: ut,
     getShipEquipmentData: A,
-    isShipEquipment: Et,
-    validateItemForSlot: se,
+    isShipEquipment: Ct,
+    validateItemForSlot: re,
     setShipEquipmentData: V,
-    updateShipEquipmentDurability: ae,
-    updateShipEquipmentPowerState: ze,
-    updateShipEquipmentPowerAllocation: me,
-    activateEquipment: Ye
+    updateShipEquipmentDurability: oe,
+    updateShipEquipmentPowerState: Ye,
+    updateShipEquipmentPowerAllocation: he,
+    activateEquipment: We
   };
   game.holodock = e;
   const t = game.modules.get(S);
   t && (t.api = e);
 }
-function mi() {
+function hi() {
   const e = game.modules.get("holosuite-core");
   return (e != null && e.active ? e.api : null) ?? game.holosuite ?? globalThis.HoloSuiteCoreApi ?? null;
 }
-function ue() {
-  const e = mi();
+function pe() {
+  const e = hi();
   if (!(e != null && e.registerApp)) return !1;
   const t = {
     id: S,
@@ -2400,21 +2402,21 @@ function ue() {
     premium: !1,
     playerVisible: !0,
     description: "View and manage system-agnostic ship loadouts.",
-    open: () => ft()
+    open: () => mt()
   };
   return e.registerApp(t), !0;
 }
-function hi() {
-  if (ue()) return;
+function gi() {
+  if (pe()) return;
   let e = 0;
   const t = () => {
-    e += 1, !(ue() || e >= 20) && window.setTimeout(t, 250);
+    e += 1, !(pe() || e >= 20) && window.setTimeout(t, 250);
   };
-  Hooks.once("holosuite-core.apiReady", () => ue()), window.setTimeout(t, 250);
+  Hooks.once("holosuite-core.apiReady", () => pe()), window.setTimeout(t, 250);
 }
 Hooks.once("init", async () => {
-  pi(), Handlebars.registerHelper("hdFallback", (e, t) => e || t), await loadTemplates([Ne]);
+  fi(), Handlebars.registerHelper("hdFallback", (e, t) => e || t), await loadTemplates([Ue]);
 });
 Hooks.once("ready", () => {
-  fi(), Ht(), Hooks.on("getApplicationHeaderButtons", te), Hooks.on("getApplicationV1HeaderButtons", te), Hooks.on("getDocumentSheetHeaderButtons", te), Hooks.on("getItemSheetHeaderButtons", te), Hooks.on("getHeaderControlsApplicationV2", li), Hooks.on("renderItemSheet", J), Hooks.on("renderItemSheetV2", J), Hooks.on("renderApplication", J), Hooks.on("renderApplicationV1", J), Hooks.on("renderApplicationV2", J), Hooks.on("renderChatMessage", He), Hooks.on("renderChatMessageHTML", He), hi(), console.log(`${S} | Ready. API available at game.holodock.`);
+  mi(), Rt(), Hooks.on("getApplicationHeaderButtons", ie), Hooks.on("getApplicationV1HeaderButtons", ie), Hooks.on("getDocumentSheetHeaderButtons", ie), Hooks.on("getItemSheetHeaderButtons", ie), Hooks.on("getHeaderControlsApplicationV2", ci), Hooks.on("renderItemSheet", Q), Hooks.on("renderItemSheetV2", Q), Hooks.on("renderApplication", Q), Hooks.on("renderApplicationV1", Q), Hooks.on("renderApplicationV2", Q), Hooks.on("renderChatMessage", Re), Hooks.on("renderChatMessageHTML", Re), gi(), console.log(`${S} | Ready. API available at game.holodock.`);
 });

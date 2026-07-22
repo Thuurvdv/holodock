@@ -3,6 +3,7 @@
   --hd-border: var(--hs-border-subtle);
   --hd-blue: var(--hs-color-primary);
   --hd-amber: var(--hs-color-warning);
+  --hd-window-header-height: 30px;
   --hd-link-color: color-mix(in srgb, var(--hs-color-primary) 70%, white 10%);
   --hd-online: #31d6a0;
   --hd-low-power: #f0c466;
@@ -14,12 +15,238 @@
   --hd-field-text: #f4fbff;
 }
 
+.holodock-window:not(.hd-dialog) {
+  background: var(--hs-surface-window) !important;
+  border: 1px solid color-mix(in srgb, var(--hs-color-primary) 28%, transparent) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--hs-color-primary) 18%, transparent),
+    0 18px 46px rgba(0, 0, 0, 0.48);
+  overflow: hidden;
+}
+
+.holodock-window:not(.hd-dialog) .window-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--hd-window-header-height);
+  min-height: var(--hd-window-header-height);
+  padding: 0 8px;
+  border: 0 !important;
+  background:
+    linear-gradient(rgba(231, 250, 255, 0.035) 50%, rgba(0, 0, 0, 0.05) 50%) 0 0 / 100% 4px,
+    linear-gradient(90deg, rgba(2, 13, 24, 0.98), rgba(5, 19, 28, 0.94), rgba(2, 13, 24, 0.98)) !important;
+  color: var(--hs-text-primary) !important;
+  box-shadow:
+    inset 0 -1px 0 color-mix(in srgb, var(--hs-color-primary) 48%, transparent),
+    inset 0 -10px 20px color-mix(in srgb, var(--hs-color-primary) 8%, transparent);
+  font-family: var(--hs-font-ui) !important;
+}
+
+.holodock-window:not(.hd-dialog) .window-header::before,
+.holodock-window:not(.hd-dialog) .window-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 108px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--hs-color-primary));
+  opacity: 0.75;
+}
+
+.holodock-window:not(.hd-dialog) .window-header::before {
+  left: 12px;
+}
+
+.holodock-window:not(.hd-dialog) .window-header::after {
+  right: 12px;
+  transform: scaleX(-1);
+}
+
+.holodock-window:not(.hd-dialog) .window-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--hs-text-primary);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--hs-color-primary) 32%, transparent);
+  white-space: nowrap;
+}
+
+.holodock-window:not(.hd-dialog) .window-header :where(.header-button, .header-control, button.close, a.close) {
+  position: relative;
+  z-index: 1;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  min-height: 24px;
+  border-color: transparent !important;
+  background: transparent !important;
+  color: var(--hs-color-primary) !important;
+  box-shadow: none !important;
+}
+
+.holodock-window:not(.hd-dialog) .window-header :where(.header-button, .header-control, button.close, a.close):where(:hover, :focus-visible) {
+  border-color: color-mix(in srgb, var(--hs-color-primary) 54%, transparent) !important;
+  background: color-mix(in srgb, var(--hs-color-primary) 12%, transparent) !important;
+  color: var(--hs-text-primary) !important;
+  box-shadow: var(--hs-glow-cyan) !important;
+}
+
 .holodock-window .window-content {
   background: var(--hs-surface-window);
   color: var(--hs-text-primary);
   padding: 0;
   overflow: hidden;
   height: 100%;
+}
+
+.holodock-window:not(.hd-dialog) .window-content {
+  overflow: hidden;
+}
+
+.hs-application {
+  --hs-app-padding-block: 20px;
+  --hs-app-padding-inline: 24px;
+  --hs-frame-corner-size: 72px;
+  --hs-frame-edge-inset: 0px;
+  --hs-frame-side-width: var(--hs-frame-corner-size);
+  --hs-frame-header-width: 180px;
+  --hs-frame-header-height: 18px;
+  --hs-frame-color: var(--hs-border-strong);
+  --hs-frame-glow: color-mix(in srgb, var(--hs-color-primary) 36%, transparent);
+  position: relative;
+  isolation: isolate;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.hs-background,
+.hs-frame,
+.hs-effects {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hs-background {
+  z-index: 0;
+}
+
+.hs-frame {
+  z-index: 2;
+}
+
+.hs-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 18px;
+  min-height: 0;
+  height: 100%;
+  padding: var(--hs-app-padding-block) var(--hs-app-padding-inline);
+}
+
+.hs-effects {
+  z-index: 3;
+  background:
+    linear-gradient(rgba(231, 250, 255, 0.026) 50%, rgba(0, 0, 0, 0.035) 50%) 0 0 / 100% 4px,
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--hs-color-primary) 8%, transparent), transparent);
+  mix-blend-mode: screen;
+  opacity: 0.42;
+}
+
+.hs-frame-piece {
+  position: absolute;
+  display: block;
+  color: var(--hs-frame-color);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 7px var(--hs-frame-glow));
+  overflow: visible;
+}
+
+.hs-frame-corner {
+  width: var(--hs-frame-corner-size);
+  height: var(--hs-frame-corner-size);
+}
+
+img.hs-frame-corner {
+  display: block;
+  border: 0 !important;
+  outline: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  object-fit: contain;
+}
+
+img.hs-frame-edge {
+  display: block;
+  border: 0 !important;
+  outline: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  object-fit: fill;
+}
+
+.hs-frame-corner--top-left {
+  top: 0;
+  left: 0;
+}
+
+.hs-frame-corner--top-right {
+  top: 0;
+  right: 0;
+}
+
+.hs-frame-corner--bottom-left {
+  bottom: 0;
+  left: 0;
+}
+
+.hs-frame-corner--bottom-right {
+  right: 0;
+  bottom: 0;
+}
+
+.hs-frame-edge--left,
+.hs-frame-edge--right {
+  top: var(--hs-frame-corner-size);
+  width: var(--hs-frame-side-width);
+  height: calc(100% - (var(--hs-frame-corner-size) * 2));
+}
+
+.hs-frame-edge--left {
+  left: var(--hs-frame-edge-inset);
+}
+
+.hs-frame-edge--right {
+  right: var(--hs-frame-edge-inset);
+}
+
+.hs-frame-header {
+  top: 9px;
+  left: 50%;
+  width: min(var(--hs-frame-header-width), calc(100% - (var(--hs-frame-corner-size) * 2)));
+  height: var(--hs-frame-header-height);
+  transform: translateX(-50%);
+}
+
+img.hs-frame-header {
+  display: block;
+  border: 0 !important;
+  outline: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  object-fit: contain;
 }
 
 .hd-shell {
@@ -36,12 +263,11 @@
   --hd-broken: #ff5f6d;
   --hd-field-bg: #07131a;
   --hd-field-text: #f4fbff;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  display: block;
   min-width: 720px;
   min-height: 0;
   height: 100%;
-  background: var(--hs-surface-panel);
+  background: transparent;
   color: var(--hs-text-primary);
   font-family: var(--hs-font-ui);
 }
@@ -1593,26 +1819,25 @@
 }
 
 /* Command-deck redesign */
-.hd-shell {
-  grid-template-rows: auto minmax(0, 1fr);
+.hd-shell .hs-background {
   background:
     radial-gradient(circle at 50% 8%, color-mix(in srgb, var(--hs-color-primary) 12%, transparent), transparent 34%),
     linear-gradient(180deg, color-mix(in srgb, var(--hs-surface-window) 84%, black), var(--hs-surface-panel));
 }
 
-.hd-shell.hd-condition-strained {
+.hd-shell.hd-condition-strained .hs-background {
   background:
     radial-gradient(circle at 50% 8%, color-mix(in srgb, var(--hd-amber) 8%, transparent), transparent 34%),
     linear-gradient(180deg, color-mix(in srgb, var(--hs-surface-window) 84%, black), var(--hs-surface-panel));
 }
 
-.hd-shell.hd-condition-compromised {
+.hd-shell.hd-condition-compromised .hs-background {
   background:
     radial-gradient(circle at 50% 8%, color-mix(in srgb, var(--hd-amber) 16%, transparent), transparent 34%),
     linear-gradient(180deg, color-mix(in srgb, var(--hs-surface-window) 84%, black), var(--hs-surface-panel));
 }
 
-.hd-shell.hd-condition-critical {
+.hd-shell.hd-condition-critical .hs-background {
   background:
     radial-gradient(circle at 50% 8%, color-mix(in srgb, var(--hs-color-danger, #ff5f6d) 18%, transparent), transparent 34%),
     linear-gradient(180deg, color-mix(in srgb, var(--hs-surface-window) 84%, black), var(--hs-surface-panel));
@@ -1623,7 +1848,7 @@
   align-items: end;
   justify-content: space-between;
   gap: 18px;
-  padding: 16px 20px 12px;
+  padding: 0 0 12px;
   border-bottom: 1px solid color-mix(in srgb, var(--hs-border-subtle) 70%, transparent);
 }
 
@@ -1639,7 +1864,7 @@
   gap: 18px;
   min-height: 0;
   height: 100%;
-  padding: 18px 20px;
+  padding: 0;
   overflow: hidden;
 }
 
@@ -2583,10 +2808,9 @@
 }
 
 @media (max-width: 820px) {
-  .hd-topbar,
-  .hd-ops-layout {
-    padding-left: 12px;
-    padding-right: 12px;
+  .hs-application {
+    --hs-app-padding-block: 16px;
+    --hs-app-padding-inline: 16px;
   }
 
   .hd-ops-layout,
