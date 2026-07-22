@@ -15,6 +15,41 @@
   --hd-field-text: #f4fbff;
 }
 
+:where(:root, body)[data-holosuite-device-style="space-police"] .holodock-window,
+:where(:root, body)[data-holosuite-device-style="space-police"] .hd-shell {
+  --hs-cyan: #fff15a;
+  --hs-amber: #fff15a;
+  --hs-line: rgba(255, 241, 90, 0.34);
+  --hs-line-strong: rgba(255, 241, 90, 0.72);
+  --hs-panel: linear-gradient(180deg, rgba(18, 18, 15, 0.98), rgba(2, 2, 2, 0.96));
+  --hs-field: #10100c;
+  --hs-surface-window: linear-gradient(180deg, rgba(10, 11, 10, 0.98), rgba(2, 2, 2, 0.97));
+  --hs-surface-panel: var(--hs-panel);
+  --hs-surface-card: linear-gradient(180deg, rgba(30, 28, 18, 0.94), rgba(6, 6, 5, 0.97));
+  --hs-surface-control: linear-gradient(180deg, rgba(38, 39, 34, 0.94), rgba(8, 8, 7, 0.98));
+  --hs-surface-control-hover: linear-gradient(180deg, rgba(66, 56, 28, 0.96), rgba(15, 13, 8, 0.98));
+  --hs-surface-active: linear-gradient(135deg, rgba(255, 241, 90, 0.22), rgba(255, 156, 64, 0.12));
+  --hs-border-subtle: var(--hs-line);
+  --hs-border-strong: var(--hs-line-strong);
+  --hs-color-accent: #ffb13d;
+  --hs-color-primary: #fff15a;
+  --hs-text-secondary: #c7c1a9;
+  --hs-glow-cyan: 0 0 18px rgba(255, 241, 90, 0.3);
+  --hs-focus-ring: 0 0 0 2px rgba(255, 177, 61, 0.2);
+  --hs-shadow-control:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+    inset 0 -1px 0 rgba(255, 177, 61, 0.16);
+  --hs-shadow-panel:
+    0 20px 46px rgba(0, 0, 0, 0.48),
+    inset 0 0 32px rgba(255, 241, 90, 0.08);
+  --hd-panel: var(--hs-panel);
+  --hd-border: var(--hs-border-subtle);
+  --hd-blue: var(--hs-color-primary);
+  --hd-amber: #fff15a;
+  --hd-link-color: color-mix(in srgb, #fff15a 72%, white 8%);
+  --hd-field-bg: #10100c;
+}
+
 .holodock-window:not(.hd-dialog) {
   background: var(--hs-surface-window) !important;
   border: 1px solid color-mix(in srgb, var(--hs-color-primary) 28%, transparent) !important;
@@ -41,6 +76,12 @@
     inset 0 -1px 0 color-mix(in srgb, var(--hs-color-primary) 48%, transparent),
     inset 0 -10px 20px color-mix(in srgb, var(--hs-color-primary) 8%, transparent);
   font-family: var(--hs-font-ui) !important;
+}
+
+:where(:root, body)[data-holosuite-device-style="space-police"] .holodock-window:not(.hd-dialog) .window-header {
+  background:
+    linear-gradient(rgba(255, 247, 173, 0.028) 50%, rgba(0, 0, 0, 0.05) 50%) 0 0 / 100% 4px,
+    linear-gradient(90deg, rgba(10, 10, 8, 0.98), rgba(25, 22, 12, 0.94), rgba(10, 10, 8, 0.98)) !important;
 }
 
 .holodock-window:not(.hd-dialog) .window-header::before,
@@ -249,6 +290,18 @@ img.hs-frame-header {
   object-fit: contain;
 }
 
+.hs-frame img.hs-frame-piece--space-police {
+  display: none;
+}
+
+:where(:root, body)[data-holosuite-device-style="space-police"] .hs-frame img.hs-frame-piece--default {
+  display: none;
+}
+
+:where(:root, body)[data-holosuite-device-style="space-police"] .hs-frame img.hs-frame-piece--space-police {
+  display: block;
+}
+
 .hd-shell {
   --hd-panel: var(--hs-panel);
   --hd-border: var(--hs-border-subtle);
@@ -390,7 +443,7 @@ img.hs-frame-header {
 .holodock-window .hd-dialog-form select,
 .holodock-window .hd-dialog-form textarea {
   min-height: 34px;
-  border: 1px solid rgba(122, 219, 255, 0.42);
+  border: 1px solid color-mix(in srgb, var(--hs-color-primary) 42%, transparent);
   border-radius: var(--hs-radius);
   background: var(--hd-field-bg);
   color: var(--hd-field-text);
@@ -526,7 +579,7 @@ img.hs-frame-header {
 .holodock-window .hd-dialog-form select:focus,
 .holodock-window .hd-dialog-form textarea:focus {
   border-color: var(--hd-blue);
-  outline: 1px solid rgba(122, 219, 255, 0.55);
+  outline: 1px solid color-mix(in srgb, var(--hs-color-primary) 55%, transparent);
 }
 
 .holodock-window.hd-dialog .dialog-buttons,
@@ -1597,7 +1650,7 @@ img.hs-frame-header {
 .hd-chat-card {
   display: grid;
   gap: 10px;
-  border: 1px solid var(--hs-border-subtle, rgba(122, 219, 255, 0.34));
+  border: 1px solid var(--hs-border-subtle, color-mix(in srgb, var(--hs-color-primary) 34%, transparent));
   border-radius: var(--hs-radius, 4px);
   padding: 10px;
   background: var(--hs-surface-card, rgba(7, 19, 26, 0.88));
@@ -1623,7 +1676,7 @@ img.hs-frame-header {
   place-items: center;
   width: 42px;
   height: 42px;
-  color: var(--hd-blue, #7adbff);
+  color: var(--hd-blue, var(--hs-color-primary));
   font-size: 20px;
 }
 
@@ -1634,7 +1687,7 @@ img.hs-frame-header {
 
 .hd-chat-card h3 {
   color: var(--hs-text-primary, #f4fbff);
-  text-shadow: 0 0 10px color-mix(in srgb, var(--hs-color-primary, #7adbff) 28%, transparent);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--hs-color-primary) 28%, transparent);
 }
 
 .hd-chat-card dl {
@@ -1676,15 +1729,15 @@ img.hs-frame-header {
 .hd-chat-actions button {
   min-height: 28px;
   padding: 0 10px;
-  border: 1px solid var(--hs-border-subtle, rgba(122, 219, 255, 0.34));
+  border: 1px solid var(--hs-border-subtle, color-mix(in srgb, var(--hs-color-primary) 34%, transparent));
   border-radius: var(--hs-radius, 4px);
   background: color-mix(in srgb, var(--hs-field, #101821) 78%, transparent);
   color: var(--hs-text-primary, #f4fbff);
 }
 
 .hd-chat-actions button:hover {
-  border-color: var(--hs-color-primary, #7adbff);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--hs-color-primary, #7adbff) 22%, transparent);
+  border-color: var(--hs-color-primary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--hs-color-primary) 22%, transparent);
 }
 
 .hd-install-request-status {
@@ -1707,7 +1760,7 @@ img.hs-frame-header {
 }
 
 .hd-chat-card.is-activated {
-  border-color: color-mix(in srgb, var(--hs-color-primary, #7adbff) 62%, transparent);
+  border-color: color-mix(in srgb, var(--hs-color-primary) 62%, transparent);
 }
 
 .hd-preset-preview {
