@@ -1635,7 +1635,7 @@
 
 .hd-ops-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(420px, 1fr) minmax(260px, 340px);
+  grid-template-columns: minmax(300px, 320px) minmax(420px, 1fr) minmax(260px, 340px);
   gap: 18px;
   min-height: 0;
   height: 100%;
@@ -1739,19 +1739,24 @@
 
 .hd-vital-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(132px, 1fr));
   gap: 8px;
 }
 
 .hd-vital-card {
-  display: grid;
+  display: grid !important;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
     "icon label"
     "value value"
     "note note";
+  align-content: start;
+  justify-items: start;
   gap: 2px 7px;
   min-width: 0;
+  width: 100%;
+  min-height: 92px;
+  overflow: hidden;
   padding: 10px;
   border: 0;
   border-radius: 6px;
@@ -1781,29 +1786,56 @@
 .hd-vital-card i {
   grid-area: icon;
   color: var(--hd-blue);
+  line-height: 1.2;
 }
 
 .hd-vital-card span {
   grid-area: label;
+  display: block;
+  max-width: 100%;
   color: var(--hs-text-secondary);
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
+  line-height: 1.2;
+  white-space: nowrap;
+  word-break: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
 }
 
 .hd-vital-card strong {
   grid-area: value;
+  display: block;
   min-width: 0;
-  overflow-wrap: anywhere;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: normal;
+  word-break: normal;
   font-size: 17px;
   line-height: 1.1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
 }
 
 .hd-vital-card small {
   grid-area: note;
+  display: block;
   min-width: 0;
+  max-width: 100%;
   color: var(--hs-text-secondary);
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  overflow-wrap: normal;
+  word-break: normal;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
 }
 
 .hd-inspector-stats {
@@ -2216,7 +2248,7 @@
 
 .hd-equipment-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 10px;
   align-items: stretch;
 }
@@ -2248,8 +2280,23 @@
 }
 
 .hd-action-group button {
-  min-width: 0;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 6px;
+  min-width: 96px;
+  max-width: 100%;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
+}
+
+.hd-action-group > button {
+  width: 100%;
 }
 
 .hd-action-primary .hd-primary-action {
@@ -2302,7 +2349,7 @@
 }
 
 .hd-button-row button {
-  flex: 1 1 88px;
+  flex: 1 1 104px;
 }
 
 .hd-primary-action {
@@ -2524,7 +2571,7 @@
 
 @media (max-width: 1120px) {
   .hd-ops-layout {
-    grid-template-columns: minmax(200px, 260px) minmax(380px, 1fr);
+    grid-template-columns: minmax(300px, 320px) minmax(380px, 1fr);
   }
 
   .hd-equipment-sidebar {

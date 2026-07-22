@@ -151,6 +151,7 @@ let selectedPage = "overview";
 let selectedEquipmentSlotId = "";
 let lastEquipmentDialogOpenKey = "";
 let lastEquipmentDialogOpenAt = 0;
+const itemResolveCache = new Map<string, Promise<any | null>>();
 const SOCKET_NAME = `module.${MODULE_ID}`;
 
 const HOLODOCK_PAGES = [
@@ -382,9 +383,35 @@ function getDurabilityState(equipment: ShipEquipmentData): { isBroken: boolean; 
   return { isBroken, isDamaged, value, max };
 }
 
-async function createActivationChatCard(item: any, result: ActivationResult, context: Record<string, unknown> = {}): Promise<void> {
+async function createHoloDockChatMessage(content: string, flags: Record<string, unknown> = {}): Promise<any | null> {
   const chatMessage = (globalThis as any).ChatMessage;
-  if (!chatMessage?.create) return;
+  if (!chatMessage?.create) {
+    ui.notifications?.warn?.("Foundry chat is not available.");
+    return null;
+  }
+
+  let speaker: Record<string, unknown> = { alias: game.user?.name ?? MODULE_TITLE };
+  try {
+    speaker = chatMessage.getSpeaker?.({ actor: game.user?.character ?? undefined, alias: game.user?.name }) ?? speaker;
+  } catch (error) {
+    console.debug(`${MODULE_ID} | Could not resolve chat speaker, using fallback.`, error);
+  }
+
+  try {
+    return await chatMessage.create({
+      user: game.user?.id,
+      speaker,
+      content,
+      flags
+    });
+  } catch (error) {
+    console.warn(`${MODULE_ID} | Failed to create HoloDock chat card.`, error);
+    ui.notifications?.warn?.("HoloDock could not create a chat card. Check the console for details.");
+    return null;
+  }
+}
+
+async function createActivationChatCard(item: any, result: ActivationResult, context: Record<string, unknown> = {}): Promise<void> {
   const equipment = getShipEquipmentData(item);
   const durability = getDurabilityState(equipment);
   const slot = context.slot as ShipSlot | undefined;
@@ -412,11 +439,7 @@ async function createActivationChatCard(item: any, result: ActivationResult, con
       ${result.message ? `<p>${escapeHtml(result.message)}</p>` : ""}
     </article>
   `;
-  await chatMessage.create({
-    user: game.user?.id,
-    speaker: chatMessage.getSpeaker?.() ?? {},
-    content
-  });
+  await createHoloDockChatMessage(content);
 }
 
 async function activateEquipment(item: any, context: Record<string, unknown> = {}): Promise<ActivationResult> {
@@ -807,14 +830,9 @@ async function confirmPowerPresetApplication(profile: ShipProfile, preset: ShipP
 }
 
 async function createPowerPresetChatCard(profile: ShipProfile, preset: ShipPowerPreset, applied: number): Promise<void> {
-  const chatMessage = (globalThis as any).ChatMessage;
-  if (!chatMessage?.create) return;
   const allocated = preset.entries.reduce((total, entry) => entry.online ? total + entry.allocated : total, 0);
   const online = preset.entries.filter((entry) => entry.online).length;
-  await chatMessage.create({
-    user: game.user?.id,
-    speaker: chatMessage.getSpeaker?.() ?? {},
-    content: `
+  await createHoloDockChatMessage(`
       <article class="hd-chat-card is-activated">
         <header>
           <i class="fa-solid fa-sliders"></i>
@@ -831,7 +849,7 @@ async function createPowerPresetChatCard(profile: ShipProfile, preset: ShipPower
         </dl>
       </article>
     `
-  });
+  );
 }
 
 async function applyPowerPreset(profileId: string, presetId: string): Promise<boolean> {
@@ -1106,11 +1124,6 @@ async function confirmGmEquipmentInstallRequest(message: HoloDockSocketMessage):
 }
 
 async function requestGmEquipmentInstall(profileId: string, slotId: string, itemUuid: string): Promise<boolean> {
-  const chatMessage = (globalThis as any).ChatMessage;
-  if (!chatMessage?.create) {
-    ui.notifications?.warn?.("Foundry chat is not available for ship equipment requests.");
-    return false;
-  }
   const requestId = createId("equip");
   const profile = getProfile(profileId);
   const slot = profile?.slots.find((candidate) => candidate.id === slotId);
@@ -1119,10 +1132,7 @@ async function requestGmEquipmentInstall(profileId: string, slotId: string, item
     ui.notifications?.warn?.("That ship equipment request could not be prepared.");
     return false;
   }
-  await chatMessage.create({
-    user: game.user?.id,
-    speaker: chatMessage.getSpeaker?.() ?? {},
-    content: `
+  const message = await createHoloDockChatMessage(`
       <article class="hd-chat-card hd-install-request-card" data-hd-install-request="${escapeHtml(requestId)}" data-hd-profile-id="${escapeHtml(profileId)}" data-hd-slot-id="${escapeHtml(slotId)}" data-hd-item-uuid="${escapeHtml(itemUuid)}" data-hd-user-id="${escapeHtml(game.user?.id ?? "")}">
         <header>
           <img src="${escapeHtml(item.img || "icons/svg/item-bag.svg")}" alt="">
@@ -1143,7 +1153,7 @@ async function requestGmEquipmentInstall(profileId: string, slotId: string, item
         </footer>
       </article>
     `,
-    flags: {
+    {
       [MODULE_ID]: {
         installRequest: {
           requestId,
@@ -1155,7 +1165,8 @@ async function requestGmEquipmentInstall(profileId: string, slotId: string, item
         }
       }
     }
-  });
+  );
+  if (!message) return false;
   ui.notifications?.info?.("HoloDock posted the install request to chat.");
   return true;
 }
@@ -1308,15 +1319,24 @@ async function resolveItem(uuid: string): Promise<any | null> {
   const cleaned = String(uuid || "").trim();
   const resolveUuid = (globalThis as any).fromUuid;
   if (!cleaned || typeof resolveUuid !== "function") return null;
-  try {
-    const document = await resolveUuid(cleaned);
-    if (document?.documentName === "Item") return document;
-    if (document?.constructor?.name === "Item") return document;
-    return null;
-  } catch (error) {
-    console.warn(`${MODULE_ID} | Failed to resolve item UUID "${cleaned}".`, error);
-    return null;
-  }
+  const cached = itemResolveCache.get(cleaned);
+  if (cached) return cached;
+
+  const pending = (async () => {
+    try {
+      const document = await resolveUuid(cleaned);
+      if (document?.documentName === "Item") return document;
+      if (document?.constructor?.name === "Item") return document;
+      return null;
+    } catch (error) {
+      console.warn(`${MODULE_ID} | Failed to resolve item UUID "${cleaned}".`, error);
+      return null;
+    }
+  })();
+  itemResolveCache.set(cleaned, pending);
+  const item = await pending;
+  if (!item) itemResolveCache.delete(cleaned);
+  return item;
 }
 
 function getDragData(event: DragEvent): any {
@@ -1881,7 +1901,7 @@ function getElement(app: any, html: any = null): HTMLElement | null {
 }
 
 function refreshOpenApp(): void {
-  if (holodockApp?.rendered) holodockApp.render(true);
+  if (holodockApp?.rendered) holodockApp.requestRender();
 }
 
 function getFormValues(html: any): Record<string, string> {
@@ -2530,6 +2550,7 @@ function activateItemSheetHeaderAction(app: any, html: any = null): void {
 class HoloDockApp extends LegacyApplication {
   private linkingSlotId = "";
   private linkResizeObserver?: ResizeObserver;
+  private renderFrame?: number;
 
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
@@ -2548,6 +2569,16 @@ class HoloDockApp extends LegacyApplication {
     return getRenderContext();
   }
 
+  requestRender(): void {
+    if (!this.rendered) return;
+    if (this.renderFrame) return;
+    const schedule = globalThis.requestAnimationFrame ?? ((callback: FrameRequestCallback) => window.setTimeout(callback, 16));
+    this.renderFrame = schedule(() => {
+      this.renderFrame = undefined;
+      void this.render(true);
+    });
+  }
+
   activateListeners(html) {
     super.activateListeners(html);
     const element = getElement(this, html);
@@ -2556,7 +2587,7 @@ class HoloDockApp extends LegacyApplication {
     element.querySelector("[data-hd-profile-select]")?.addEventListener("change", (event) => {
       selectedProfileId = (event.currentTarget as HTMLSelectElement).value;
       selectedEquipmentSlotId = "";
-      void setDefaultProfileId(selectedProfileId).finally(() => this.render(true));
+      void setDefaultProfileId(selectedProfileId).finally(() => this.requestRender());
     });
 
     element.querySelectorAll("[data-hd-page]").forEach((button) => {
@@ -2564,15 +2595,19 @@ class HoloDockApp extends LegacyApplication {
         const page = (event.currentTarget as HTMLElement).dataset.hdPage ?? "overview";
         if (!HOLODOCK_PAGES.some((candidate) => candidate.id === page)) return;
         selectedPage = page;
-        this.render(true);
+        this.requestRender();
       });
     });
 
     element.querySelectorAll("[data-hd-select-equipment]").forEach((button) => {
       button.addEventListener("click", (event) => {
-        selectedEquipmentSlotId = (event.currentTarget as HTMLElement).dataset.hdSelectEquipment ?? "";
+        const slotId = (event.currentTarget as HTMLElement).dataset.hdSelectEquipment ?? "";
+        const profile = getSelectedProfile();
+        const slot = profile?.slots.find((candidate) => candidate.id === slotId);
+        if (!slot?.itemUuid) return;
+        selectedEquipmentSlotId = slotId;
         selectedPage = "equipment";
-        this.render(true);
+        this.requestRender();
       });
     });
 
@@ -2710,10 +2745,15 @@ class HoloDockApp extends LegacyApplication {
           ui.notifications?.warn?.("That ship equipment could not be found.");
           return;
         }
-        const result = await activateEquipment(item, { profile, slot });
-        if (result.blocked || !result.ok) ui.notifications?.warn?.(result.message);
-        else if (!result.handled) ui.notifications?.info?.(result.message);
-        else if (result.message) ui.notifications?.info?.(result.message);
+        try {
+          const result = await activateEquipment(item, { profile, slot });
+          if (result.blocked || !result.ok) ui.notifications?.warn?.(result.message);
+          else if (!result.handled) ui.notifications?.info?.(result.message);
+          else if (result.message) ui.notifications?.info?.(result.message);
+        } catch (error) {
+          console.warn(`${MODULE_ID} | Failed to activate ship equipment.`, error);
+          ui.notifications?.warn?.("HoloDock could not activate that equipment. Check the console for details.");
+        }
       });
     });
 
@@ -2900,7 +2940,7 @@ class HoloDockApp extends LegacyApplication {
         if (!slotId || game.user?.isGM) return;
         selectedEquipmentSlotId = slotId;
         selectedPage = "equipment";
-        this.render(true);
+        this.requestRender();
       });
       pin.addEventListener("pointerdown", (event) => {
         if (!game.user?.isGM) return;
@@ -2922,7 +2962,7 @@ class HoloDockApp extends LegacyApplication {
           if (!moved) {
             selectedEquipmentSlotId = slotId;
             selectedPage = "equipment";
-            this.render(true);
+            this.requestRender();
             return;
           }
           const profile = getSelectedProfile();
@@ -3045,6 +3085,11 @@ class HoloDockApp extends LegacyApplication {
   }
 
   async close(options = {}) {
+    if (this.renderFrame) {
+      const cancel = globalThis.cancelAnimationFrame ?? window.clearTimeout;
+      cancel(this.renderFrame);
+      this.renderFrame = undefined;
+    }
     this.linkResizeObserver?.disconnect();
     this.linkResizeObserver = undefined;
     holodockApp = null;
