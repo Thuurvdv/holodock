@@ -3,6 +3,7 @@ export const MODULE_TITLE = "HoloDock";
 export const SETTING_PROFILES = "profiles";
 export const SETTING_CATEGORIES = "slotCategories";
 export const SETTING_DEFAULT_PROFILE = "defaultProfile";
+export const SETTING_CHAT_CARDS_ENABLED = "chatCardsEnabled";
 export const FLAG_SHIP_EQUIPMENT = "shipEquipment";
 export const TEMPLATE_PATH = `modules/${MODULE_ID}/templates/holodock.hbs`;
 export const DEFAULT_IMAGE = "modules/holodock/assets/SpaceshipDefault.webp";

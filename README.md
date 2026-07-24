@@ -10,7 +10,7 @@ HoloDock is a free HoloSuite module for Foundry VTT that provides a system-agnos
 - Create categorized equipment slots with names, descriptions, and optional ship-image pins.
 - Drag regular Foundry Items onto equipment slots and convert them into tracked ship equipment.
 - Display installed item names, icons, types, descriptions, power state, durability, and activation controls.
-- Manage ship power capacity, per-system power allocation, online/offline state, and saved power presets.
+- Manage ship power capacity, per-system power allocation, and online/offline state.
 - Review dashboard pages for overview, systems, power grid, damage, speed, capacity, and additional stats.
 - Activate configured ship equipment from HoloDock and post activation results to chat.
 - Let players request equipment installation through chat when GM approval is needed.

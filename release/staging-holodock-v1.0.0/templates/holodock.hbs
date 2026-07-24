@@ -201,7 +201,7 @@
 
                 <div class="hd-editor-grid">
                   {{#if selectedProfile.selectedEquipmentSlot.item.equipment.durability.enabled}}
-                    <section>
+                    <section title="A player needs to be a Trusted Player for activation to impact durability.">
                       <span>Durability</span>
                       <strong>{{selectedProfile.selectedEquipmentSlot.item.equipment.durability.value}} / {{selectedProfile.selectedEquipmentSlot.item.equipment.durability.max}}</strong>
                       <small>{{selectedProfile.selectedEquipmentSlot.item.equipment.durability.state}}</small>
@@ -225,6 +225,7 @@
                       {{#if selectedProfile.selectedEquipmentSlot.item.equipment.activation.resourceCost}}<small>Cost: {{selectedProfile.selectedEquipmentSlot.item.equipment.activation.resourceCost}}</small>{{/if}}
                       {{#if selectedProfile.selectedEquipmentSlot.item.equipment.activation.durabilityCost}}<small>Durability cost: {{selectedProfile.selectedEquipmentSlot.item.equipment.activation.durabilityCost}}</small>{{/if}}
                       {{#if selectedProfile.selectedEquipmentSlot.item.equipment.activation.cooldown}}<small>Cooldown: {{selectedProfile.selectedEquipmentSlot.item.equipment.activation.cooldown}} rounds</small>{{/if}}
+                      {{#if selectedProfile.selectedEquipmentSlot.item.equipment.activation.cooldownText}}<small>{{selectedProfile.selectedEquipmentSlot.item.equipment.activation.cooldownText}}</small>{{/if}}
                     </section>
                   {{/if}}
                 </div>
@@ -259,9 +260,9 @@
                     {{#if selectedProfile.selectedEquipmentSlot.item.equipment.durability.enabled}}
                       <section class="hd-action-group">
                         <span>Integrity</span>
-                        <label class="hd-inline-field">
+                        <label class="hd-inline-field" title="A player needs to be a Trusted Player for activation to impact durability.">
                           <small>Current of {{selectedProfile.selectedEquipmentSlot.item.equipment.durability.max}}</small>
-                          <input class="hd-direct-input" type="number" min="0" max="{{selectedProfile.selectedEquipmentSlot.item.equipment.durability.max}}" step="1" value="{{selectedProfile.selectedEquipmentSlot.item.equipment.durability.value}}" data-hd-durability-value="{{selectedProfile.selectedEquipmentSlot.id}}" title="Current durability">
+                          <input class="hd-direct-input" type="number" min="0" max="{{selectedProfile.selectedEquipmentSlot.item.equipment.durability.max}}" step="1" value="{{selectedProfile.selectedEquipmentSlot.item.equipment.durability.value}}" data-hd-durability-value="{{selectedProfile.selectedEquipmentSlot.id}}" title="A player needs to be a Trusted Player for activation to impact durability.">
                         </label>
                       </section>
                     {{/if}}
@@ -288,52 +289,6 @@
               <span>Reactor</span>
               <strong>{{selectedProfile.powerGrid.reactorLabel}}</strong>
             </div>
-            {{#if canEdit}}
-              <section class="hd-power-presets" aria-label="Power presets">
-                <div class="hd-power-presets-heading">
-                  <div>
-                    <p class="hd-kicker">Power Presets</p>
-                    <strong>{{#if selectedProfile.hasPowerPresets}}{{selectedProfile.powerPresets.length}} saved{{else}}No presets{{/if}}</strong>
-                  </div>
-                  <button type="button" data-hd-action="save-power-preset"><i class="fa-solid fa-floppy-disk"></i> Save Current</button>
-                </div>
-                {{#if selectedProfile.hasPowerPresets}}
-                  <div class="hd-power-preset-list">
-                    {{#each selectedProfile.powerPresets as |preset|}}
-                      <article class="hd-power-preset {{#if preset.isCurrent}}is-current{{/if}} {{#if preset.isOverBudget}}is-warning{{/if}}">
-                        <header>
-                          <div>
-                            <p class="hd-kicker">{{#if preset.isCurrent}}Current Mode{{else}}Power Mode{{/if}}</p>
-                            <strong>{{preset.name}}</strong>
-                          </div>
-                          <button type="button" data-hd-delete-power-preset="{{preset.id}}" title="Delete preset"><i class="fa-solid fa-trash"></i></button>
-                        </header>
-                        <div class="hd-preset-metrics">
-                          <span><strong>{{preset.allocated}}</strong><small>Target</small></span>
-                          <span><strong>{{preset.onlineEntries}}/{{preset.systemCount}}</strong><small>Online</small></span>
-                          <span><strong>{{preset.changedEntries}}</strong><small>Changes</small></span>
-                        </div>
-                        {{#if preset.isOverBudget}}<small class="hd-preset-warning">Over budget by {{preset.projectedOverage}}</small>{{/if}}
-                        {{#if preset.missingEntries}}<small class="hd-preset-warning">{{preset.missingEntries}} missing saved systems</small>{{/if}}
-                        {{#if preset.hasPreviewChanges}}
-                          <div class="hd-preset-change-list">
-                            {{#each preset.previewChanges as |change|}}
-                              <span class="{{change.stateClass}}"><strong>{{change.itemName}}</strong><small>{{change.currentText}} -> {{change.targetText}}</small></span>
-                            {{/each}}
-                          </div>
-                        {{else}}
-                          <small class="hd-muted">No visible changes.</small>
-                        {{/if}}
-                        <button type="button" class="hd-primary-action" data-hd-apply-power-preset="{{preset.id}}" title="{{preset.summary}}" {{#if preset.isCurrent}}disabled{{/if}}>
-                          <i class="fa-solid fa-sliders"></i>
-                          {{#if preset.isCurrent}}Applied{{else}}Preview & Apply{{/if}}
-                        </button>
-                      </article>
-                    {{/each}}
-                  </div>
-                {{/if}}
-              </section>
-            {{/if}}
 
             {{#if selectedProfile.powerGrid.hasNodes}}
               <div class="hd-power-grid">
@@ -384,24 +339,40 @@
             <article class="hd-stat-detail">
               <i class="fa-solid fa-gauge-high"></i>
               <p class="hd-kicker">Speed</p>
-              <section class="hd-stat-primary-field {{#unless selectedProfile.dashboard.speed.stat}}is-empty{{/unless}}">
-                <span>Speed</span>
-                {{#if canEdit}}
-                  <input type="text" value="{{selectedProfile.dashboard.speed.inputValue}}" placeholder="{{selectedProfile.dashboard.speed.value}}" data-hd-stat-value="{{selectedProfile.dashboard.speed.statId}}" data-hd-stat-label="{{selectedProfile.dashboard.speed.editLabel}}" data-hd-stat-note="{{selectedProfile.dashboard.speed.note}}" title="Speed">
-                {{else}}
-                  <strong>{{selectedProfile.dashboard.speed.value}}</strong>
+              {{#if canEdit}}
+                <section class="hd-stat-primary-field {{#unless selectedProfile.dashboard.speed.hasValue}}is-empty{{/unless}}">
+                  <span>Speed</span>
+                  <div class="hd-stat-input-row">
+                    <input type="text" value="{{selectedProfile.dashboard.speed.inputValue}}" placeholder="{{selectedProfile.dashboard.speed.value}}" data-hd-stat-key="{{selectedProfile.dashboard.speed.key}}" data-hd-stat-value="{{selectedProfile.dashboard.speed.statId}}" data-hd-stat-label="{{selectedProfile.dashboard.speed.editLabel}}" data-hd-stat-note="{{selectedProfile.dashboard.speed.note}}" title="Speed">
+                    <button type="button" data-hd-unset-stat="{{selectedProfile.dashboard.speed.key}}" title="Unset speed"><i class="fa-solid fa-xmark"></i></button>
+                  </div>
+                </section>
+              {{else}}
+                {{#if selectedProfile.dashboard.speed.hasValue}}
+                  <section class="hd-stat-primary-field">
+                    <span>Speed</span>
+                    <strong>{{selectedProfile.dashboard.speed.value}}</strong>
+                  </section>
                 {{/if}}
-              </section>
+              {{/if}}
               <div class="hd-stat-detail-grid">
                 {{#each selectedProfile.dashboard.speed.metrics as |metric|}}
-                  <section class="{{#unless metric.isConfigured}}is-empty{{/unless}}">
-                    <span>{{metric.label}}</span>
-                    {{#if ../canEdit}}
-                      <input type="text" value="{{metric.inputValue}}" placeholder="{{metric.value}}" data-hd-stat-value="{{metric.statId}}" data-hd-stat-label="{{metric.editLabel}}" data-hd-stat-note="{{metric.note}}" title="{{metric.label}}">
-                    {{else}}
-                      <strong>{{metric.value}}</strong>
+                  {{#if ../canEdit}}
+                    <section class="{{#unless metric.hasValue}}is-empty{{/unless}}">
+                      <span>{{metric.label}}</span>
+                      <div class="hd-stat-input-row">
+                        <input type="text" value="{{metric.inputValue}}" placeholder="{{metric.value}}" data-hd-stat-key="{{metric.key}}" data-hd-stat-value="{{metric.statId}}" data-hd-stat-label="{{metric.editLabel}}" data-hd-stat-note="{{metric.note}}" title="{{metric.label}}">
+                        <button type="button" data-hd-unset-stat="{{metric.key}}" title="Unset {{metric.label}}"><i class="fa-solid fa-xmark"></i></button>
+                      </div>
+                    </section>
+                  {{else}}
+                    {{#if metric.hasValue}}
+                      <section>
+                        <span>{{metric.label}}</span>
+                        <strong>{{metric.value}}</strong>
+                      </section>
                     {{/if}}
-                  </section>
+                  {{/if}}
                 {{/each}}
               </div>
               <p class="hd-muted">Track cruise speed, maximum speed, and thrust.</p>
@@ -414,24 +385,40 @@
             <article class="hd-stat-detail">
               <i class="fa-solid fa-users"></i>
               <p class="hd-kicker">Capacity</p>
-              <section class="hd-stat-primary-field {{#unless selectedProfile.dashboard.capacity.stat}}is-empty{{/unless}}">
-                <span>Capacity</span>
-                {{#if canEdit}}
-                  <input type="text" value="{{selectedProfile.dashboard.capacity.inputValue}}" placeholder="{{selectedProfile.dashboard.capacity.value}}" data-hd-stat-value="{{selectedProfile.dashboard.capacity.statId}}" data-hd-stat-label="{{selectedProfile.dashboard.capacity.editLabel}}" data-hd-stat-note="{{selectedProfile.dashboard.capacity.note}}" title="Capacity">
-                {{else}}
-                  <strong>{{selectedProfile.dashboard.capacity.value}}</strong>
+              {{#if canEdit}}
+                <section class="hd-stat-primary-field {{#unless selectedProfile.dashboard.capacity.hasValue}}is-empty{{/unless}}">
+                  <span>Capacity</span>
+                  <div class="hd-stat-input-row">
+                    <input type="text" value="{{selectedProfile.dashboard.capacity.inputValue}}" placeholder="{{selectedProfile.dashboard.capacity.value}}" data-hd-stat-key="{{selectedProfile.dashboard.capacity.key}}" data-hd-stat-value="{{selectedProfile.dashboard.capacity.statId}}" data-hd-stat-label="{{selectedProfile.dashboard.capacity.editLabel}}" data-hd-stat-note="{{selectedProfile.dashboard.capacity.note}}" title="Capacity">
+                    <button type="button" data-hd-unset-stat="{{selectedProfile.dashboard.capacity.key}}" title="Unset capacity"><i class="fa-solid fa-xmark"></i></button>
+                  </div>
+                </section>
+              {{else}}
+                {{#if selectedProfile.dashboard.capacity.hasValue}}
+                  <section class="hd-stat-primary-field">
+                    <span>Capacity</span>
+                    <strong>{{selectedProfile.dashboard.capacity.value}}</strong>
+                  </section>
                 {{/if}}
-              </section>
+              {{/if}}
               <div class="hd-stat-detail-grid">
                 {{#each selectedProfile.dashboard.capacity.metrics as |metric|}}
-                  <section class="{{#unless metric.isConfigured}}is-empty{{/unless}}">
-                    <span>{{metric.label}}</span>
-                    {{#if ../canEdit}}
-                      <input type="text" value="{{metric.inputValue}}" placeholder="{{metric.value}}" data-hd-stat-value="{{metric.statId}}" data-hd-stat-label="{{metric.editLabel}}" data-hd-stat-note="{{metric.note}}" title="{{metric.label}}">
-                    {{else}}
-                      <strong>{{metric.value}}</strong>
+                  {{#if ../canEdit}}
+                    <section class="{{#unless metric.hasValue}}is-empty{{/unless}}">
+                      <span>{{metric.label}}</span>
+                      <div class="hd-stat-input-row">
+                        <input type="text" value="{{metric.inputValue}}" placeholder="{{metric.value}}" data-hd-stat-key="{{metric.key}}" data-hd-stat-value="{{metric.statId}}" data-hd-stat-label="{{metric.editLabel}}" data-hd-stat-note="{{metric.note}}" title="{{metric.label}}">
+                        <button type="button" data-hd-unset-stat="{{metric.key}}" title="Unset {{metric.label}}"><i class="fa-solid fa-xmark"></i></button>
+                      </div>
+                    </section>
+                  {{else}}
+                    {{#if metric.hasValue}}
+                      <section>
+                        <span>{{metric.label}}</span>
+                        <strong>{{metric.value}}</strong>
+                      </section>
                     {{/if}}
-                  </section>
+                  {{/if}}
                 {{/each}}
               </div>
               <p class="hd-muted">Track crew, berths, cargo capacity, and life support.</p>
@@ -500,7 +487,7 @@
 
   {{else}}
     <div class="hd-empty">
-      <i class="fa-solid fa-shuttle-space"></i>
+      <i class="fas fa-rocket"></i>
       {{#if canEdit}}
         <p>Create a ship profile to start assigning equipment.</p>
       {{else}}

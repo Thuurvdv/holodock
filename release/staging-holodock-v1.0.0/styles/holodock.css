@@ -965,119 +965,6 @@ img.hs-frame-header {
   gap: 8px;
 }
 
-.hd-power-presets {
-  display: grid;
-  gap: 8px;
-  padding: 9px;
-  border: 1px solid var(--hs-border-subtle);
-  border-radius: var(--hs-radius);
-  background: color-mix(in srgb, var(--hs-field) 48%, transparent);
-}
-
-.hd-power-presets-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.hd-power-presets-heading strong {
-  display: block;
-  font-size: 12px;
-}
-
-.hd-power-presets-heading button {
-  min-height: 28px;
-  padding: 0 9px;
-  white-space: nowrap;
-}
-
-.hd-power-preset-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 10px;
-}
-
-.hd-power-preset {
-  display: grid;
-  gap: 10px;
-  min-width: 0;
-  padding: 10px;
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--hs-field) 48%, transparent);
-}
-
-.hd-power-preset > header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.hd-power-preset > header button {
-  width: 30px;
-  min-height: 30px;
-  padding: 0;
-}
-
-.hd-preset-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.hd-preset-metrics span {
-  display: grid;
-  gap: 1px;
-  min-width: 0;
-  padding: 7px;
-  border-radius: 5px;
-  background: color-mix(in srgb, var(--hs-surface-control) 50%, transparent);
-}
-
-.hd-power-preset span,
-.hd-power-preset strong,
-.hd-power-preset small {
-  display: block;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.hd-power-preset small {
-  color: var(--hs-text-secondary);
-  font-size: 10px;
-}
-
-.hd-power-preset.is-current {
-  box-shadow: inset 3px 0 0 var(--hd-blue), var(--hs-glow-cyan);
-}
-
-.hd-power-preset.is-warning {
-  box-shadow: inset 3px 0 0 var(--hd-amber);
-}
-
-.hd-preset-warning {
-  color: var(--hd-amber) !important;
-  font-weight: 700;
-}
-
-.hd-preset-change-list {
-  display: grid;
-  gap: 5px;
-}
-
-.hd-preset-change-list > span {
-  display: grid;
-  gap: 1px;
-  padding: 6px 7px;
-  border-radius: 5px;
-  background: color-mix(in srgb, var(--hs-surface-control) 38%, transparent);
-}
-
-.hd-preset-change-list > span.is-offline strong {
-  color: var(--hs-color-danger, #ff5f6d);
-}
-
 .hd-dashboard-tiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
@@ -1763,48 +1650,6 @@ img.hs-frame-header {
   border-color: color-mix(in srgb, var(--hs-color-primary) 62%, transparent);
 }
 
-.hd-preset-preview {
-  display: grid;
-  gap: 10px;
-}
-
-.hd-preset-preview-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.hd-preset-preview-summary article,
-.hd-preset-preview-row {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-  padding: 9px;
-  border-radius: var(--hs-radius, 4px);
-  background: color-mix(in srgb, var(--hs-field, #101821) 56%, transparent);
-}
-
-.hd-preset-preview-summary span,
-.hd-preset-preview-row small {
-  color: var(--hs-text-secondary, #9db7c3);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.hd-preset-preview-list {
-  display: grid;
-  gap: 6px;
-}
-
-.hd-preset-preview-row span {
-  color: var(--hs-text-secondary, #9db7c3);
-}
-
-.hd-preset-preview-row.is-offline strong {
-  color: var(--hs-color-danger, #ff5f6d);
-}
-
 .hd-empty {
   display: grid;
   place-items: center;
@@ -2327,8 +2172,7 @@ img.hs-frame-header {
   color: var(--hs-text-secondary);
 }
 
-.hd-equipment-sidebar-header,
-.hd-power-presets-heading {
+.hd-equipment-sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2456,10 +2300,10 @@ img.hs-frame-header {
 }
 
 .hd-entry-menu > div {
-  position: absolute;
-  top: 30px;
-  right: 0;
-  z-index: 10;
+  position: fixed;
+  top: var(--hd-entry-menu-top, 0);
+  left: var(--hd-entry-menu-left, 0);
+  z-index: 100;
   display: grid;
   gap: 4px;
   min-width: 150px;
@@ -2805,6 +2649,20 @@ img.hs-frame-header {
   text-align: center;
   font-size: 28px;
   font-weight: 800;
+}
+
+.hd-stat-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.hd-stat-input-row button {
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
 }
 
 .hd-stat-detail-grid {
