@@ -1,5 +1,5 @@
-import type { HoloSuiteAppRegistration } from "../../shared/src/index";
-import { getApplicationBase } from "../../shared/src/application-base";
+import type { HoloSuiteAppRegistration } from "./shared";
+import { getApplicationBase } from "./shared/application-base";
 import {
   DEFAULT_CATEGORIES,
   DEFAULT_IMAGE,
