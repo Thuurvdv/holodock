@@ -2,7 +2,7 @@
     "id":  "holodock",
     "title":  "HoloDock",
     "description":  "A system-agnostic ship loadout overview for HoloSuite.",
-    "version":  "1.0.0",
+    "version":  "1.0.1",
     "authors":  [
                     {
                         "name":  "Mage Tower Studios",
@@ -24,7 +24,7 @@
                ],
     "url":  "https://github.com/Thuurvdv/holodock",
     "manifest":  "https://github.com/Thuurvdv/holodock/releases/latest/download/module.json",
-    "download":  "https://github.com/Thuurvdv/holodock/releases/download/v1.0.0/holodock-v1.0.0.zip",
+    "download":  "https://github.com/Thuurvdv/holodock/releases/download/v1.0.1/holodock-v1.0.1.zip",
     "license":  "GPL-3.0-or-later",
     "readme":  "README.md",
     "relationships":  {

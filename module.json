@@ -2,7 +2,7 @@
   "id": "holodock",
   "title": "HoloDock",
   "description": "A system-agnostic ship loadout overview for HoloSuite.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "authors": [
     {
       "name": "Mage Tower Studios",

@@ -348,7 +348,7 @@ function getDurabilityState(equipment: ShipEquipmentData): { isBroken: boolean; 
 
 async function createHoloDockChatMessage(content: string, flags: Record<string, unknown> = {}): Promise<any | null> {
   if (!areChatCardsEnabled()) return null;
-  const chatMessage = (globalThis as any).ChatMessage;
+  const chatMessage = getChatMessageClass();
   if (!chatMessage?.create) {
     ui.notifications?.warn?.("Foundry chat is not available.");
     return null;
@@ -373,6 +373,14 @@ async function createHoloDockChatMessage(content: string, flags: Record<string, 
     ui.notifications?.warn?.("HoloDock could not create a chat card. Check the console for details.");
     return null;
   }
+}
+
+function getChatMessageClass(): any {
+  const global = globalThis as any;
+  return global.ChatMessage
+    ?? global.CONFIG?.ChatMessage?.documentClass
+    ?? global.foundry?.documents?.ChatMessage
+    ?? global.foundry?.data?.ChatMessage;
 }
 
 function areChatCardsEnabled(): boolean {

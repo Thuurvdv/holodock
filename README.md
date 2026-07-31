@@ -55,4 +55,4 @@ https://github.com/Thuurvdv/holodock/releases/latest/download/module.json
 
 ## Release
 
-Version 1.0.0 is the initial HoloDock release for Foundry VTT v12, v13, and v14.
+Version 1.0.1 fixes activation chat cards on Foundry VTT v12.
