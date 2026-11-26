@@ -57,7 +57,7 @@ jobs:
 
           mkdir -p "staging/$MODULE_ID"
 
-          MANIFEST_URL="https://github.com/$REPO/releases/download/$TAG/module.json"
+          MANIFEST_URL="https://github.com/$REPO/releases/latest/download/module.json"
           DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG/$MODULE_ID.zip"
 
           jq \
